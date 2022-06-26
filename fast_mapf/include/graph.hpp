@@ -8,6 +8,7 @@ struct Vertex {
   Vertex(int _id);
 };
 using Vertices = std::vector<Vertex*>;
+using Config = std::vector<Vertex*>;
 
 struct Graph {
   Vertices V;

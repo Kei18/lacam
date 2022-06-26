@@ -9,7 +9,7 @@ const std::regex r_instance =
 
 Instance::Instance(const std::string& scen_filename,
                    const std::string& map_filename, const int _N)
-    : G(Graph()), starts(Vertices()), goals(Vertices()), N(_N)
+    : G(Graph()), starts(Config()), goals(Config()), N(_N)
 {
   // load graph
   load_graph(G, map_filename);
