@@ -17,7 +17,7 @@ const std::regex r_height = std::regex(R"(height\s(\d+))");
 const std::regex r_width = std::regex(R"(width\s(\d+))");
 const std::regex r_map = std::regex(R"(map)");
 
-void load_graph(Graph& G, std::string& filename)
+void load_graph(Graph& G, const std::string& filename)
 {
   std::ifstream file(filename);
   if (!file) {
@@ -26,8 +26,6 @@ void load_graph(Graph& G, std::string& filename)
   }
   std::string line;
   std::smatch results;
-  int height = 0;
-  int width = 0;
 
   // read fundamental graph parameters
   while (getline(file, line)) {
@@ -35,25 +33,25 @@ void load_graph(Graph& G, std::string& filename)
     if (*(line.end() - 1) == 0x0d) line.pop_back();
 
     if (std::regex_match(line, results, r_height)) {
-      height = std::stoi(results[1].str());
+      G.height = std::stoi(results[1].str());
     }
     if (std::regex_match(line, results, r_width)) {
-      width = std::stoi(results[1].str());
+      G.width = std::stoi(results[1].str());
     }
     if (std::regex_match(line, results, r_map)) break;
   }
 
-  G.V = Vertices(width * height, nullptr);
+  G.V = Vertices(G.width * G.height, nullptr);
 
   // build vertices
   int y = 0;
   while (getline(file, line)) {
     // for CRLF coding
     if (*(line.end() - 1) == 0x0d) line.pop_back();
-    for (int x = 0; x < width; ++x) {
+    for (int x = 0; x < G.width; ++x) {
       char s = line[x];
       if (s == 'T' or s == '@') continue;  // object
-      int id = width * y + x;
+      int id = G.width * y + x;
       G.V[id] = new Vertex(id);
     }
     ++y;
@@ -61,28 +59,28 @@ void load_graph(Graph& G, std::string& filename)
   file.close();
 
   // create edges
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      auto v = G.V[width * y + x];
+  for (int y = 0; y < G.height; ++y) {
+    for (int x = 0; x < G.width; ++x) {
+      auto v = G.V[G.width * y + x];
       if (v == nullptr) continue;
       // left
       if (x > 0) {
-        auto u = G.V[width * y + (x - 1)];
+        auto u = G.V[G.width * y + (x - 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // right
-      if (x < width - 1) {
-        auto u = G.V[width * y + (x + 1)];
+      if (x < G.width - 1) {
+        auto u = G.V[G.width * y + (x + 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // up
-      if (y < height - 1) {
-        auto u = G.V[width * (y + 1) + x];
+      if (y < G.height - 1) {
+        auto u = G.V[G.width * (y + 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // down
       if (y > 0) {
-        auto u = G.V[width * (y - 1) + x];
+        auto u = G.V[G.width * (y - 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
     }

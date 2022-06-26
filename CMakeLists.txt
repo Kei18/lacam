@@ -18,6 +18,7 @@ macro(add_test name target)
 endmacro(add_test)
 
 add_test(test_graph ./tests/test_graph.cpp)
+add_test(test_instance ./tests/test_instance.cpp)
 
 add_executable(test_all ${TEST_ALL_SRC})
 target_link_libraries(test_all fast_mapf gtest)

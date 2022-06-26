@@ -11,9 +11,11 @@ using Vertices = std::vector<Vertex*>;
 
 struct Graph {
   Vertices V;
+  int width;
+  int height;
   Graph();
   ~Graph();
 };
 
-void load_graph(Graph& G, std::string& filename);
+void load_graph(Graph& G, const std::string& filename);
 int get_num_vertices(const Graph& G);
