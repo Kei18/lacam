@@ -13,3 +13,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: build
         run: cmake -B build && make -C build
+      - name: test
+        run: ./build/test_all

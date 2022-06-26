@@ -1,5 +1,4 @@
-#include <fstream>
-#include <regex>
+#pragma once
 #include <vector>
 
 struct Vertex {

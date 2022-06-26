@@ -1,10 +1,14 @@
 #include "../include/graph.hpp"
+
+#include <fstream>
 #include <iostream>
+#include <regex>
 
 Vertex::Vertex(int _id) : id(_id), neighbor(Vertices()) {}
 
 Graph::Graph() : V(Vertices()) {}
-Graph::~Graph() {
+Graph::~Graph()
+{
   for (auto v : V)
     if (v != nullptr) delete v;
 }
@@ -63,22 +67,22 @@ void load_graph(Graph& G, std::string& filename)
       if (v == nullptr) continue;
       // left
       if (x > 0) {
-        auto u = G.V[width * y + (x-1)];
+        auto u = G.V[width * y + (x - 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // right
       if (x < width - 1) {
-        auto u = G.V[width * y + (x+1)];
+        auto u = G.V[width * y + (x + 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // up
       if (y < height - 1) {
-        auto u = G.V[width * (y+1) + x];
+        auto u = G.V[width * (y + 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // down
       if (y > 0) {
-        auto u = G.V[width * (y-1) + x];
+        auto u = G.V[width * (y - 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
     }
