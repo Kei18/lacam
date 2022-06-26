@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.16)
+project(fast-mapf CXX)
+add_executable(${CMAKE_PROJECT_NAME} ./src/main.cpp)
+target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_17)
+target_compile_options(${PROJECT_NAME} PUBLIC -O3 -Wall -mtune=native -march=native)
