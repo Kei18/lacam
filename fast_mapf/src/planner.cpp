@@ -37,8 +37,23 @@ std::string get_id(Config& C)
   return id;
 }
 
+std::vector<int> get_order(Config& C, DistTable& dist_table)
+{
+  std::vector<int> A(size(C));
+  std::iota(A.begin(), A.end(), 0);
+  auto cmp = [&](int i, int j) {
+    return dist_table[i][C[i]->id] < dist_table[j][C[j]->id];
+  };
+  std::sort(A.begin(), A.end(), cmp);
+  return A;
+}
+
 Node::Node(Config _C, DistTable& dist_table, Node* _parent)
-    : C(_C), cost(get_cost(_C, dist_table)), id(get_id(_C)), parent(_parent)
+    : C(_C),
+      cost(get_cost(_C, dist_table)),
+      id(get_id(_C)),
+      parent(_parent),
+      order(get_order(_C, dist_table))
 {
 }
 
@@ -81,6 +96,7 @@ void solve(const Instance& ins)
     }
 
     // expand
+    break;
   }
 
   // memory management

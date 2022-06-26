@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <numeric>
 #include <queue>
 #include <string>
 #include <unordered_map>
@@ -12,6 +14,8 @@ struct Node {
   const float cost;
   const std::string id;
   const Node* parent;
+  const std::vector<int> order;
+
   Node(Config _C, DistTable& dist_table, Node* _parent = nullptr);
 };
 

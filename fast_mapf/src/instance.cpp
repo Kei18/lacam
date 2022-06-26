@@ -32,8 +32,11 @@ Instance::Instance(const std::string& scen_filename,
       auto x_s = std::stoi(results[2].str());
       auto y_g = std::stoi(results[3].str());
       auto x_g = std::stoi(results[4].str());
-      starts.push_back(G.V[G.width * y_s + x_s]);
-      goals.push_back(G.V[G.width * y_g + x_g]);
+      auto s = G.V[G.width * y_s + x_s];
+      auto g = G.V[G.width * y_g + x_g];
+      if (s == nullptr || g == nullptr) continue;
+      starts.push_back(s);
+      goals.push_back(g);
     }
 
     if (size(starts) == N) break;
