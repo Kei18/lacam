@@ -53,17 +53,18 @@ Node::Node(Config _C, DistTable& dist_table, Node* _parent)
       cost(get_cost(_C, dist_table)),
       id(get_id(_C)),
       parent(_parent),
-      order(get_order(_C, dist_table))
+      order(get_order(_C, dist_table)),
+      search_tree(std::queue<Constraint*>())
 {
+  search_tree.push(new Constraint());
 }
 
-bool is_same_config(const Config& C1, const Config& C2)
+Node::~Node()
 {
-  const auto N = size(C1);
-  for (int i = 0; i < N; ++i) {
-    if (C1[i]->id != C2[i]->id) return false;
+  while (!search_tree.empty()) {
+    delete search_tree.front();
+    search_tree.pop();
   }
-  return true;
 }
 
 void solve(const Instance& ins)
@@ -95,7 +96,24 @@ void solve(const Instance& ins)
       break;
     }
 
-    // expand
+    // search end
+    if (S->search_tree.empty()) {
+      OPEN.pop();
+      continue;
+    }
+
+    // create successor for low-level search
+    auto M = S->search_tree.front();
+    S->search_tree.pop();
+    if (M->depth < ins.N) {
+      auto i = S->order[M->depth];
+      for (auto u : S->C[i]->neighbor)
+        S->search_tree.push(new Constraint(M, i, u));
+      S->search_tree.push(new Constraint(M, i, S->C[i]));
+    }
+    // create successor for high-level search (by PIBT)
+
+    delete M;
     break;
   }
 

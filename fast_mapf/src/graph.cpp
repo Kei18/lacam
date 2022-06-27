@@ -95,3 +95,12 @@ int get_num_vertices(const Graph& G)
   }
   return cnt;
 }
+
+bool is_same_config(const Config& C1, const Config& C2)
+{
+  const auto N = size(C1);
+  for (int i = 0; i < N; ++i) {
+    if (C1[i]->id != C2[i]->id) return false;
+  }
+  return true;
+}

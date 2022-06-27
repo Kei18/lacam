@@ -1,5 +1,6 @@
 #pragma once
 #include "graph.hpp"
+#include "utils.hpp"
 
 struct Instance {
   Graph G;
