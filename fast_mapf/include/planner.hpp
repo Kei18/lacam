@@ -1,7 +1,5 @@
 #pragma once
 
-#include <queue>
-
 #include "graph.hpp"
 #include "instance.hpp"
 #include "utils.hpp"
@@ -19,7 +17,7 @@ struct Constraint {
     who.push_back(i);
     where.push_back(v);
   }
-  ~Constraint() { std::cout << size(who) << std::endl; }
+  ~Constraint() {}
 };
 
 struct Node {
@@ -36,6 +34,14 @@ struct Node {
   ~Node();
 };
 using Nodes = std::vector<Node*>;
+
+struct Agent {
+  int id;
+  Vertex* v_now;   // current location
+  Vertex* v_next;  // next location
+  Agent(int _id) : id(_id), v_now(nullptr), v_next(nullptr) {}
+};
+using Agents = std::vector<Agent*>;
 
 void load_dist_table(DistTable& dist_table, const Instance& ins);
 float get_cost(Config& C, DistTable& dist_table);

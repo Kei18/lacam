@@ -42,7 +42,7 @@ std::vector<int> get_order(Config& C, DistTable& dist_table)
   std::vector<int> A(size(C));
   std::iota(A.begin(), A.end(), 0);
   auto cmp = [&](int i, int j) {
-    return dist_table[i][C[i]->id] < dist_table[j][C[j]->id];
+    return dist_table[i][C[i]->id] > dist_table[j][C[j]->id];
   };
   std::sort(A.begin(), A.end(), cmp);
   return A;
@@ -74,10 +74,18 @@ void solve(const Instance& ins)
   auto dist_table = DistTable(ins.N, std::vector<int>(K, K));
   load_dist_table(dist_table, ins);
 
+  // setup PIBT
+  auto occupied_now = std::vector<int>(K, ins.N);
+  auto occupied_next = std::vector<int>(K, ins.N);
+  Agents A;
+  for (int i = 0; i < ins.N; ++i) A.push_back(new Agent(i));
+  const auto A_fixed = A;
+
   // setup search lists
-  auto cmp = [](Node* a, Node* b) { return a->cost > b->cost; };
+  auto cmp = [](Node* a, Node* b) { return a->cost < b->cost; };
   std::priority_queue<Node*, Nodes, decltype(cmp)> OPEN(cmp);
   std::unordered_map<std::string, Node*> EXPLORED;
+  std::vector<Constraint*> GC;
 
   // insert initial node
   auto S = new Node(ins.starts, dist_table);
@@ -104,6 +112,7 @@ void solve(const Instance& ins)
 
     // create successor for low-level search
     auto M = S->search_tree.front();
+    GC.push_back(M);
     S->search_tree.pop();
     if (M->depth < ins.N) {
       auto i = S->order[M->depth];
@@ -111,12 +120,55 @@ void solve(const Instance& ins)
         S->search_tree.push(new Constraint(M, i, u));
       S->search_tree.push(new Constraint(M, i, S->C[i]));
     }
-    // create successor for high-level search (by PIBT)
 
-    delete M;
+    // create successor for high-level search (by PIBT)
+    {
+      bool invalid = false;
+      // setup occupied_now
+      for (int i = 0; i < ins.N; ++i) {
+        A_fixed[i]->v_now = S->C[i];
+        A_fixed[i]->v_next = nullptr;
+        occupied_now[S->C[i]->id] = i;
+      }
+      // setup occupied_next
+      for (int k = 0; k < M->depth; ++k) {
+        const auto a = M->who[k];        // agent
+        const auto l = M->where[k]->id;  // loc
+        A_fixed[a]->v_next = M->where[k];
+        // check vertex collision
+        if (occupied_next[a] != ins.N) {
+          invalid = true;
+          break;
+        }
+        // check swap collision
+        auto l_pre = S->C[a]->id;
+        if (occupied_next[l_pre] != ins.N &&
+            occupied_next[l_pre] == occupied_now[l]) {
+          invalid = true;
+          break;
+        }
+        // set occupied_next
+        occupied_next[M->where[k]->id] = M->who[k];
+      }
+      if (invalid) continue;
+      // sort agents
+      auto cmpA = [&](Agent* a, Agent* b) {
+        return dist_table[a->id][a->v_now->id] >
+               dist_table[b->id][b->v_now->id];
+      };
+      std::sort(A.begin(), A.end(), cmpA);
+      // run PIBT
+      for (auto a : A) {
+        if (a->v_next == nullptr) {
+          // funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table);
+        }
+      }
+    }
     break;
   }
 
   // memory management
+  for (auto a : A) delete a;
+  for (auto M : GC) delete M;
   for (auto p : EXPLORED) delete p.second;
 }
