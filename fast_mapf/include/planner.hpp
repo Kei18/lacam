@@ -46,3 +46,5 @@ float get_cost(Config& C, const DistTable& dist_table);
 std::vector<int> get_order(Config& C, const DistTable& dist_table);
 std::string get_id(Config& C);
 void solve(const Instance& ins);
+bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
+              const DistTable& dist_table);

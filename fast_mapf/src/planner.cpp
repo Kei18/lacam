@@ -134,7 +134,7 @@ void solve(const Instance& ins)
       for (auto k : S->order) {
         auto a = A[k];
         if (a->v_next == nullptr) {
-          // funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table);
+          funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table);
         }
       }
     }
@@ -145,4 +145,50 @@ void solve(const Instance& ins)
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
   for (auto p : EXPLORED) delete p.second;
+}
+
+bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
+              const DistTable& dist_table)
+{
+  // compare two nodes
+  auto cmp = [&](Vertex* const v, Vertex* const u) {
+    int d_v = dist_table.get(ai->id, v);
+    int d_u = dist_table.get(ai->id, u);
+    if (d_v != d_u) return d_v < d_u;
+    // tie break
+    if (occupied_now[v->id] != nullptr && occupied_now[u->id] == nullptr)
+      return false;
+    if (occupied_now[v->id] == nullptr && occupied_now[u->id] != nullptr)
+      return true;
+    return false;
+  };
+
+  // get candidates
+  auto C = ai->v_now->neighbor;
+  C.push_back(ai->v_now);
+  // sort
+  std::sort(C.begin(), C.end(), cmp);
+
+  for (auto u : C) {
+    // avoid conflicts
+    if (occupied_next[u->id] != nullptr) continue;
+    if (aj != nullptr && u == aj->v_now) continue;
+
+    // reserve
+    occupied_next[u->id] = ai;
+    ai->v_next = u;
+
+    auto ak = occupied_now[u->id];
+    if (ak != nullptr && ak->v_next == nullptr) {
+      if (!funcPIBT(ak, ai, occupied_now, occupied_next, dist_table))
+        continue;  // replanning
+    }
+    // success to plan next one step
+    return true;
+  }
+
+  // failed to secure node
+  occupied_next[ai->v_now->id] = ai;
+  ai->v_next = ai->v_now;
+  return false;
 }
