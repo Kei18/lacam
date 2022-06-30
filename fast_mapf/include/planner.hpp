@@ -5,6 +5,8 @@
 #include "instance.hpp"
 #include "utils.hpp"
 
+using Solution = std::vector<Config>;
+
 struct Constraint {
   std::vector<int> who;
   Vertices where;
@@ -23,13 +25,13 @@ struct Node {
   const Config C;
   const float cost;
   const std::string id;
-  const Node* parent;
+  Node* parent;
 
   // for low-level search
   const std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
-  Node(Config _C, const DistTable& dist_table, Node* _parent = nullptr);
+  Node(Config _C, const DistTable& dist_table, std::string _id, Node* _parent);
   ~Node();
 };
 using Nodes = std::vector<Node*>;
@@ -45,6 +47,7 @@ using Agents = std::vector<Agent*>;
 float get_cost(Config& C, const DistTable& dist_table);
 std::vector<int> get_order(Config& C, const DistTable& dist_table);
 std::string get_id(Config& C);
-void solve(const Instance& ins);
+Solution solve(const Instance& ins);
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
               const DistTable& dist_table);
+bool is_valid(const Instance& ins, const Solution& solution);

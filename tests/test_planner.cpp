@@ -9,5 +9,6 @@ TEST(planner, solve)
   const auto map_filename = "./assets/map/random-32-32-10.map";
   const auto ins = Instance(scen_filename, map_filename, 3);
 
-  solve(ins);
+  auto solution = solve(ins);
+  ASSERT_TRUE(is_valid(ins, solution));
 }
