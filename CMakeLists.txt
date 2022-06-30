@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.16)
 project(fast-mapf CXX)
 
 add_subdirectory(./fast_mapf)
+add_subdirectory(./third_party/argparse)
 add_subdirectory(./third_party/googletest)
 
 add_executable(main main.cpp)
 target_compile_features(main PUBLIC cxx_std_17)
-target_link_libraries(main fast_mapf)
+target_link_libraries(main fast_mapf argparse)
 
 # test
 set(TEST_MAIN_FUNC ./third_party/googletest/googletest/src/gtest_main.cc)
