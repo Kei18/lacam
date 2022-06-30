@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
   const auto ins = Instance(scen_name, map_name, N);
   const auto solution = solve(ins);
-  std::cout << is_valid(ins, solution) << std::endl;
+  std::cout << is_valid(ins, solution, 1) << std::endl;
 
   return 0;
 }

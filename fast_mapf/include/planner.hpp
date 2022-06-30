@@ -5,8 +5,6 @@
 #include "instance.hpp"
 #include "utils.hpp"
 
-using Solution = std::vector<Config>;
-
 struct Constraint {
   std::vector<int> who;
   Vertices where;
@@ -50,4 +48,3 @@ std::string get_id(Config& C);
 Solution solve(const Instance& ins);
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
               const DistTable& dist_table);
-bool is_valid(const Instance& ins, const Solution& solution);
