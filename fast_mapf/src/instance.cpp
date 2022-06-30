@@ -9,7 +9,7 @@ const std::regex r_instance =
 
 Instance::Instance(const std::string& scen_filename,
                    const std::string& map_filename, const int _N)
-    : G(Graph()), starts(Vertices()), goals(Vertices()), N(_N)
+    : G(Graph()), starts(Config()), goals(Config()), N(_N)
 {
   // load graph
   load_graph(G, map_filename);
@@ -32,8 +32,11 @@ Instance::Instance(const std::string& scen_filename,
       auto x_s = std::stoi(results[2].str());
       auto y_g = std::stoi(results[3].str());
       auto x_g = std::stoi(results[4].str());
-      starts.push_back(G.V[G.width * y_s + x_s]);
-      goals.push_back(G.V[G.width * y_g + x_g]);
+      auto s = G.V[G.width * y_s + x_s];
+      auto g = G.V[G.width * y_g + x_g];
+      if (s == nullptr || g == nullptr) continue;
+      starts.push_back(s);
+      goals.push_back(g);
     }
 
     if (size(starts) == N) break;

@@ -1,10 +1,11 @@
 #pragma once
 #include "graph.hpp"
+#include "utils.hpp"
 
 struct Instance {
   Graph G;
-  Vertices starts;
-  Vertices goals;
+  Config starts;
+  Config goals;
   const int N;
 
   Instance(const std::string& scen_filename, const std::string& map_filename,

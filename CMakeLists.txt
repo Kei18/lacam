@@ -19,6 +19,7 @@ endmacro(add_test)
 
 add_test(test_graph ./tests/test_graph.cpp)
 add_test(test_instance ./tests/test_instance.cpp)
+add_test(test_dist_table ./tests/test_dist_table.cpp)
 add_test(test_planner ./tests/test_planner.cpp)
 
 add_executable(test_all ${TEST_ALL_SRC})

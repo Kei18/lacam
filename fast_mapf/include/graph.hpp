@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include "utils.hpp"
 
 struct Vertex {
   const int id;
@@ -8,6 +8,7 @@ struct Vertex {
   Vertex(int _id);
 };
 using Vertices = std::vector<Vertex*>;
+using Config = std::vector<Vertex*>;
 
 struct Graph {
   Vertices V;
@@ -19,3 +20,4 @@ struct Graph {
 
 void load_graph(Graph& G, const std::string& filename);
 int get_num_vertices(const Graph& G);
+bool is_same_config(const Config& C1, const Config& C2);
