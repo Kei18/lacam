@@ -43,22 +43,32 @@ Instance::Instance(const std::string& scen_filename,
   }
 }
 
-bool is_valid(const Instance& ins, const Solution& solution, const int verbose)
+bool is_valid_instance(const Instance& ins, const int verbose)
+{
+  if (ins.N != size(ins.starts)) {
+    info(1, verbose, "invalid N, check instance");
+    return false;
+  }
+  return true;
+}
+
+bool is_feasible_solution(const Instance& ins, const Solution& solution,
+                          const int verbose)
 {
   if (solution.empty()) {
-    if (verbose > 0) std::cout << "empty solution" << std::endl;
+    info(1, verbose, "empty solution");
     return false;
   }
 
   // check start
   if (!is_same_config(solution.front(), ins.starts)) {
-    if (verbose > 0) std::cout << "invalid starts" << std::endl;
+    info(1, verbose, "invalid starts");
     return false;
   }
 
   // check goal
   if (!is_same_config(solution.back(), ins.goals)) {
-    if (verbose > 0) std::cout << "invalid goals" << std::endl;
+    info(1, verbose, "invalid goals");
     return false;
   }
 
@@ -70,7 +80,7 @@ bool is_valid(const Instance& ins, const Solution& solution, const int verbose)
       if (v_i_from != v_i_to &&
           std::find(v_i_to->neighbor.begin(), v_i_to->neighbor.end(),
                     v_i_from) == v_i_to->neighbor.end()) {
-        if (verbose > 0) std::cout << "invalid move" << std::endl;
+        info(1, verbose, "invalid move");
         return false;
       }
 
@@ -80,20 +90,12 @@ bool is_valid(const Instance& ins, const Solution& solution, const int verbose)
         auto v_j_to = solution[t][j];
         // vertex conflicts
         if (v_j_to == v_i_to) {
-          if (verbose > 0) {
-            std::cout << "vertex conflict at timestep-" << t
-                      << ", vertex:" << v_i_to->id << ", agents: " << i
-                      << " <-> " << j << std::endl;
-          }
+          info(1, verbose, "vertex conflict");
           return false;
         }
         // swap conflicts
         if (v_j_to == v_i_from && v_j_from == v_i_to) {
-          if (verbose > 0) {
-            std::cout << "edge conflict at timestep-" << t
-                      << ", vertex:" << v_i_from->id << " <-> " << v_i_to->id
-                      << ", agents: " << i << " <-> " << j << std::endl;
-          }
+          info(1, verbose, "edge conflict");
           return false;
         }
       }

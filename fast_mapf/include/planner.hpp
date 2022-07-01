@@ -24,6 +24,7 @@ struct Node {
   const float cost;
   const std::string id;
   Node* parent;
+  const int depth;
 
   // for low-level search
   const std::vector<int> order;

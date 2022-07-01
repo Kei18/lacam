@@ -34,6 +34,7 @@ Node::Node(Config _C, const DistTable& dist_table, std::string _id = "",
       cost(get_cost(_C, dist_table)),
       id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
+      depth(_parent == nullptr ? 0 : _parent->depth + 1),
       order(get_order(_C, dist_table)),
       search_tree(std::queue<Constraint*>())
 {
@@ -63,7 +64,10 @@ Solution solve(const Instance& ins)
   for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
 
   // setup search lists
-  auto cmp = [](Node* a, Node* b) { return a->cost > b->cost; };
+  auto cmp = [](Node* a, Node* b) {
+    if (a->depth != b->depth) return a->depth < b->depth;
+    return a->cost > b->cost;
+  };
   std::priority_queue<Node*, Nodes, decltype(cmp)> OPEN(cmp);
   std::unordered_map<std::string, Node*> EXPLORED;
   std::vector<Constraint*> GC;  // garbage collection for constraint
@@ -174,12 +178,17 @@ Solution solve(const Instance& ins)
 
       // check explored list
       auto S_new_id = get_id(C);
-      if (EXPLORED.find(S_new_id) != EXPLORED.end()) continue;
+      if (EXPLORED.find(S_new_id) != EXPLORED.end()) {
+        continue;
+      }
 
       // insert new search node
       auto S_new = new Node(C, dist_table, S_new_id, S);
       OPEN.push(S_new);
       EXPLORED[S_new->id] = S_new;
+
+      std::cout << S->depth << ":" << S->cost << " -> " << S_new->depth << ":"
+                << S_new->cost << std::endl;
     }
   }
 
@@ -219,17 +228,17 @@ bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
     // avoid swap conflicts
     if (aj != nullptr && u == aj->v_now) continue;
 
+    auto ak = occupied_now[u->id];
+
+    // avoid swap confilicts with constraints
+    if (ak != nullptr && ak->v_next == ai->v_now) continue;
+
     // reserve
     occupied_next[u->id] = ai;
     ai->v_next = u;
 
-    auto ak = occupied_now[u->id];
-
     // empty or stay
     if (ak == nullptr || u == ai->v_now) return true;
-
-    // avoid conflicts with constraints
-    if (ak->v_next == ai->v_now) continue;
 
     // priority inheritance
     if (ak->v_next == nullptr) {

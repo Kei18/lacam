@@ -10,5 +10,5 @@ TEST(planner, solve)
   const auto ins = Instance(scen_filename, map_filename, 3);
 
   auto solution = solve(ins);
-  ASSERT_TRUE(is_valid(ins, solution));
+  ASSERT_TRUE(is_feasible_solution(ins, solution));
 }
