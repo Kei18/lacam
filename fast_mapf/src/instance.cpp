@@ -28,10 +28,10 @@ Instance::Instance(const std::string& scen_filename,
     if (*(line.end() - 1) == 0x0d) line.pop_back();
 
     if (std::regex_match(line, results, r_instance)) {
-      auto y_s = std::stoi(results[1].str());
-      auto x_s = std::stoi(results[2].str());
-      auto y_g = std::stoi(results[3].str());
-      auto x_g = std::stoi(results[4].str());
+      auto x_s = std::stoi(results[1].str());
+      auto y_s = std::stoi(results[2].str());
+      auto x_g = std::stoi(results[3].str());
+      auto y_g = std::stoi(results[4].str());
       auto s = G.V[G.width * y_s + x_s];
       auto g = G.V[G.width * y_g + x_g];
       if (s == nullptr || g == nullptr) continue;
