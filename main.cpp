@@ -46,7 +46,9 @@ int main(int argc, char* argv[])
   // check feasibility
   if (!is_feasible_solution(ins, solution, verbose)) return 1;
   // metrics
-  info(1, verbose, "solved: ", comp_time_ms, "ms");
+  info(1, verbose, "solved: ", comp_time_ms, "ms",
+       "\tmakespan: ", get_makespan(solution),
+       "\tsum_of_costs: ", get_sum_of_costs(solution));
 
   return 0;
 }
