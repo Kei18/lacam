@@ -5,6 +5,7 @@
 #include <numeric>
 #include <queue>
 #include <random>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <vector>

@@ -72,7 +72,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
                std::mt19937* MT)
 {
   const auto N = ins.N;
-  const auto K = size(ins.G.V);
+  const auto K = ins.G.V.size();
 
   // create distance table
   const auto dist_table = DistTable(ins);
@@ -83,12 +83,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
   Agents A(N, nullptr);
   for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
 
-  // setup search lists
-  auto cmp_node = [](Node* a, Node* b) {
-    if (a->depth != b->depth) return a->depth < b->depth;
-    return a->cost > b->cost;
-  };
-  std::priority_queue<Node*, Nodes, decltype(cmp_node)> OPEN(cmp_node);
+  std::stack<Node*> OPEN;
   std::unordered_map<std::string, Node*> EXPLORED;
   std::vector<Constraint*> GC;  // garbage collection for constraint
 
@@ -206,6 +201,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
           }
         }
       }
+
       if (invalid) continue;
 
       // create new configuration
@@ -214,7 +210,9 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
 
       // check explored list
       auto S_new_id = get_id(C);
-      if (EXPLORED.find(S_new_id) != EXPLORED.end()) {
+      auto iter = EXPLORED.find(S_new_id);
+      if (iter != EXPLORED.end()) {
+        OPEN.push(iter->second);
         continue;
       }
 
@@ -236,24 +234,15 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
               const DistTable& dist_table, std::mt19937* MT)
 {
-  // compare two nodes
-  auto cmp = [&](Vertex* const v, Vertex* const u) {
-    return dist_table.get(ai->id, v) < dist_table.get(ai->id, u);
-    // tie break
-    if (occupied_now[v->id] != nullptr && occupied_now[u->id] == nullptr)
-      return false;
-    if (occupied_now[v->id] == nullptr && occupied_now[u->id] != nullptr)
-      return true;
-    return false;
-  };
-
   // get candidates
   auto C = ai->v_now->neighbor;
   C.push_back(ai->v_now);
   // randomize  <- important!
   if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);
   // sort
-  std::sort(C.begin(), C.end(), cmp);
+  std::sort(C.begin(), C.end(), [&](Vertex* const v, Vertex* const u) {
+    return dist_table.get(ai->id, v) < dist_table.get(ai->id, u);
+  });
 
   for (auto u : C) {
     // avoid vertex conflicts
