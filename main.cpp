@@ -45,10 +45,17 @@ int main(int argc, char* argv[])
   }
   // check feasibility
   if (!is_feasible_solution(ins, solution, verbose)) return 1;
-  // metrics
-  info(1, verbose, "solved: ", comp_time_ms, "ms",
-       "\tmakespan: ", get_makespan(solution),
-       "\tsum_of_costs: ", get_sum_of_costs(solution));
+
+  // compute metrics
+  const auto dist_table = DistTable(ins);
+  const auto makespan = get_makespan(solution);
+  const auto makespan_lb = get_makespan_lower_bound(ins, dist_table);
+  const auto sum_of_costs = get_sum_of_costs(solution);
+  const auto sum_of_costs_lb = get_sum_of_costs_lower_bound(ins, dist_table);
+  info(1, verbose, "solved: ", comp_time_ms, "ms", "\tmakespan: ", makespan,
+       " (lb=", makespan_lb, ", sub-opt-ub=", (double)makespan / makespan_lb,
+       ")", "\tsum_of_costs: ", sum_of_costs, " (lb=", sum_of_costs_lb,
+       ", sub-opt-ub=", (double)sum_of_costs / sum_of_costs_lb, ")");
 
   return 0;
 }

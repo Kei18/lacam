@@ -11,3 +11,7 @@ struct DistTable {
 
   DistTable(const Instance& ins);
 };
+
+int get_makespan_lower_bound(const Instance& ins, const DistTable& dist_table);
+int get_sum_of_costs_lower_bound(const Instance& ins,
+                                 const DistTable& dist_table);

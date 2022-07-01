@@ -22,3 +22,22 @@ DistTable::DistTable(const Instance& ins)
     }
   }
 }
+
+int get_makespan_lower_bound(const Instance& ins, const DistTable& dist_table)
+{
+  int c = 0;
+  for (auto i = 0; i < ins.N; ++i) {
+    c = std::max(c, dist_table.get(i, ins.starts[i]));
+  }
+  return c;
+}
+
+int get_sum_of_costs_lower_bound(const Instance& ins,
+                                 const DistTable& dist_table)
+{
+  int c = 0;
+  for (auto i = 0; i < ins.N; ++i) {
+    c += dist_table.get(i, ins.starts[i]);
+  }
+  return c;
+}
