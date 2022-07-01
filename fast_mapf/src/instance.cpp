@@ -104,3 +104,22 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
 
   return true;
 }
+
+int get_makespan(const Solution& solution) { return size(solution) - 1; }
+
+int get_path_cost(const Solution& solution, int i)
+{
+  const auto makespan = size(solution);
+  const auto g = solution.back()[i];
+  auto c = makespan;
+  while (c > 0 && solution[c - 1][i] == g) --c;
+  return c;
+}
+
+int get_sum_of_costs(const Solution& solution)
+{
+  int c = 0;
+  const auto N = size(solution.front());
+  for (auto i = 0; i < N; ++i) c += get_path_cost(solution, i);
+  return c;
+}
