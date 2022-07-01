@@ -11,6 +11,9 @@ int main(int argc, char* argv[])
   program.add_argument("-v", "--verbose")
       .help("verbose")
       .default_value(std::string("0"));
+  program.add_argument("-t", "--time_limit_sec")
+      .help("time limit sec")
+      .default_value(std::string("10"));
 
   try {
     program.parse_args(argc, argv);
@@ -22,6 +25,8 @@ int main(int argc, char* argv[])
 
   // read instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
+  const auto time_limit_sec =
+      std::stoi(program.get<std::string>("time_limit_sec"));
   const auto scen_name = program.get<std::string>("scen");
   const auto map_name = program.get<std::string>("map");
   const auto N = std::stoi(program.get<std::string>("num"));
@@ -29,8 +34,19 @@ int main(int argc, char* argv[])
   if (!is_valid_instance(ins, verbose)) return 1;
 
   // solve
-  const auto solution = solve(ins);
+  const auto deadline = Deadline(time_limit_sec * 1000);
+  const auto solution = solve(ins, &deadline);
+  const auto comp_time_ms = deadline.elapsed_ms();
+
+  // failure
+  if (solution.empty()) {
+    info(1, verbose, "failed to solve");
+    return 0;
+  }
+  // check feasibility
   if (!is_feasible_solution(ins, solution, verbose)) return 1;
+  // metrics
+  info(1, verbose, "solved: ", comp_time_ms, "ms");
 
   return 0;
 }
