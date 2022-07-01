@@ -49,7 +49,7 @@ Node::~Node()
   }
 }
 
-Solution solve(const Instance& ins)
+Solution solve(const Instance& ins, const Deadline* deadline)
 {
   const auto N = ins.N;
   const auto K = size(ins.G.V);
@@ -81,7 +81,7 @@ Solution solve(const Instance& ins)
   int loop_cnt = 0;
   std::vector<Config> solution;
 
-  while (!OPEN.empty()) {
+  while (!OPEN.empty() && !is_expired(deadline)) {
     loop_cnt += 1;
 
     // do not pop here!
@@ -187,8 +187,9 @@ Solution solve(const Instance& ins)
       OPEN.push(S_new);
       EXPLORED[S_new->id] = S_new;
 
-      std::cout << S->depth << ":" << S->cost << " -> " << S_new->depth << ":"
-                << S_new->cost << std::endl;
+      // std::cout << S->depth << ":" << S->cost << " -> " << S_new->depth <<
+      // ":"
+      // << S_new->cost << std::endl;
     }
   }
 
