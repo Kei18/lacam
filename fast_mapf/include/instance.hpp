@@ -11,3 +11,8 @@ struct Instance {
   Instance(const std::string& scen_filename, const std::string& map_filename,
            const int _N = 1);
 };
+
+using Solution = std::vector<Config>;
+bool is_valid_instance(const Instance& ins, const int verbose = 0);
+bool is_feasible_solution(const Instance& ins, const Solution& solution,
+                          const int verbose = 0);
