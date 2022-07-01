@@ -1,5 +1,7 @@
 #pragma once
 
+#include <random>
+
 #include "dist_table.hpp"
 #include "graph.hpp"
 #include "instance.hpp"
@@ -27,6 +29,7 @@ struct Node {
   const int depth;
 
   // for low-level search
+  const std::vector<float> priorities;
   const std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
@@ -44,8 +47,11 @@ struct Agent {
 using Agents = std::vector<Agent*>;
 
 float get_cost(Config& C, const DistTable& dist_table);
-std::vector<int> get_order(Config& C, const DistTable& dist_table);
+std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
+std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
+                                  Node* _parent);
 std::string get_id(Config& C);
-Solution solve(const Instance& ins, const Deadline* deadline = nullptr);
+Solution solve(const Instance& ins, const int verbose = 0,
+               const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table);
+              const DistTable& dist_table, std::mt19937* MT);

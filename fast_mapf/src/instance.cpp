@@ -17,7 +17,7 @@ Instance::Instance(const std::string& scen_filename,
   // load start-goal
   std::ifstream file(scen_filename);
   if (!file) {
-    std::cout << "file " << scen_filename << " is not found." << std::endl;
+    info(0, 0, scen_filename, " is not found");
     return;
   }
   std::string line;

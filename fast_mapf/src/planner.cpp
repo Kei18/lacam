@@ -1,11 +1,12 @@
 #include "../include/planner.hpp"
 
 #include <algorithm>
+#include <random>
 
 float get_cost(Config& C, const DistTable& dist_table)
 {
   float cost = 0;
-  const auto N = size(C);
+  const auto N = C.size();
   for (auto i = 0; i < N; ++i) cost += dist_table.get(i, C[i]);
   return cost;
 }
@@ -17,14 +18,31 @@ std::string get_id(Config& C)
   return id;
 }
 
-std::vector<int> get_order(Config& C, const DistTable& dist_table)
+std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
+                                  Node* parent)
 {
-  std::vector<int> A(size(C));
+  const auto N = C.size();
+  auto P = std::vector<float>(C.size(), 0);
+  if (parent == nullptr) {
+    for (auto i = 0; i < N; ++i) P[i] = dist_table.get(i, C[i]) / N;
+  } else {
+    for (auto i = 0; i < N; ++i) {
+      if (dist_table.get(i, C[i]) != 0) {
+        P[i] = parent->priorities[i] + 1;
+      } else {
+        P[i] = parent->priorities[i] - (int)parent->priorities[i];
+      }
+    }
+  }
+  return P;
+}
+
+std::vector<int> get_order(Config& C, const std::vector<float>& priorities)
+{
+  std::vector<int> A(C.size());
   std::iota(A.begin(), A.end(), 0);
-  auto cmp = [&](int i, int j) {
-    return dist_table.get(i, C[i]) > dist_table.get(j, C[j]);
-  };
-  std::sort(A.begin(), A.end(), cmp);
+  std::sort(A.begin(), A.end(),
+            [&](int i, int j) { return priorities[i] > priorities[j]; });
   return A;
 }
 
@@ -35,7 +53,8 @@ Node::Node(Config _C, const DistTable& dist_table, std::string _id = "",
       id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
       depth(_parent == nullptr ? 0 : _parent->depth + 1),
-      order(get_order(_C, dist_table)),
+      priorities(get_priorities(_C, dist_table, _parent)),
+      order(get_order(_C, priorities)),
       search_tree(std::queue<Constraint*>())
 {
   search_tree.push(new Constraint());
@@ -49,7 +68,8 @@ Node::~Node()
   }
 }
 
-Solution solve(const Instance& ins, const Deadline* deadline)
+Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
+               std::mt19937* MT)
 {
   const auto N = ins.N;
   const auto K = size(ins.G.V);
@@ -64,11 +84,11 @@ Solution solve(const Instance& ins, const Deadline* deadline)
   for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
 
   // setup search lists
-  auto cmp = [](Node* a, Node* b) {
+  auto cmp_node = [](Node* a, Node* b) {
     if (a->depth != b->depth) return a->depth < b->depth;
     return a->cost > b->cost;
   };
-  std::priority_queue<Node*, Nodes, decltype(cmp)> OPEN(cmp);
+  std::priority_queue<Node*, Nodes, decltype(cmp_node)> OPEN(cmp_node);
   std::unordered_map<std::string, Node*> EXPLORED;
   std::vector<Constraint*> GC;  // garbage collection for constraint
 
@@ -111,10 +131,10 @@ Solution solve(const Instance& ins, const Deadline* deadline)
     if (M->depth < N) {
       auto i = S->order[M->depth];
       auto C = S->C[i]->neighbor;
-      C.push_back(S->C[i]);
       std::sort(C.begin(), C.end(), [&](Vertex* a, Vertex* b) {
         return dist_table.get(i, a) < dist_table.get(i, b);
       });
+      C.push_back(S->C[i]);
       for (auto u : C) S->search_tree.push(new Constraint(M, i, u));
     }
 
@@ -161,11 +181,26 @@ Solution solve(const Instance& ins, const Deadline* deadline)
       }
       if (invalid) continue;
 
+      if (M->depth == 1) {
+        int c = 0;
+        int k = -1;
+        int l = 0;
+        for (auto i = 0; i < N; ++i) {
+          auto d = dist_table.get(i, S->C[i]);
+          if (d > 0) l += 1;
+          if (d > c) {
+            k = i;
+            c = d;
+          }
+        }
+      }
+
       // run PIBT
       for (auto k : S->order) {
         auto a = A[k];
         if (a->v_next == nullptr) {
-          if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table)) {
+          if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table,
+                        MT)) {
             invalid = true;
             break;
           }
@@ -199,13 +234,11 @@ Solution solve(const Instance& ins, const Deadline* deadline)
 }
 
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table)
+              const DistTable& dist_table, std::mt19937* MT)
 {
   // compare two nodes
   auto cmp = [&](Vertex* const v, Vertex* const u) {
-    int d_v = dist_table.get(ai->id, v);
-    int d_u = dist_table.get(ai->id, u);
-    if (d_v != d_u) return d_v < d_u;
+    return dist_table.get(ai->id, v) < dist_table.get(ai->id, u);
     // tie break
     if (occupied_now[v->id] != nullptr && occupied_now[u->id] == nullptr)
       return false;
@@ -217,6 +250,8 @@ bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
   // get candidates
   auto C = ai->v_now->neighbor;
   C.push_back(ai->v_now);
+  // randomize  <- important!
+  if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);
   // sort
   std::sort(C.begin(), C.end(), cmp);
 
@@ -240,7 +275,7 @@ bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
 
     // priority inheritance
     if (ak->v_next == nullptr) {
-      if (!funcPIBT(ak, ai, occupied_now, occupied_next, dist_table))
+      if (!funcPIBT(ak, ai, occupied_now, occupied_next, dist_table, MT))
         continue;  // replanning
     }
     // success to plan next one step
