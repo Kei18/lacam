@@ -110,11 +110,12 @@ Solution solve(const Instance& ins, const Deadline* deadline)
     S->search_tree.pop();
     if (M->depth < N) {
       auto i = S->order[M->depth];
-      // move to neighbor
-      for (auto u : S->C[i]->neighbor)
-        S->search_tree.push(new Constraint(M, i, u));
-      // stay motion
-      S->search_tree.push(new Constraint(M, i, S->C[i]));
+      auto C = S->C[i]->neighbor;
+      C.push_back(S->C[i]);
+      std::sort(C.begin(), C.end(), [&](Vertex* a, Vertex* b) {
+        return dist_table.get(i, a) < dist_table.get(i, b);
+      });
+      for (auto u : C) S->search_tree.push(new Constraint(M, i, u));
     }
 
     // create successor for high-level search by PIBT
@@ -186,10 +187,6 @@ Solution solve(const Instance& ins, const Deadline* deadline)
       auto S_new = new Node(C, dist_table, S_new_id, S);
       OPEN.push(S_new);
       EXPLORED[S_new->id] = S_new;
-
-      // std::cout << S->depth << ":" << S->cost << " -> " << S_new->depth <<
-      // ":"
-      // << S_new->cost << std::endl;
     }
   }
 
