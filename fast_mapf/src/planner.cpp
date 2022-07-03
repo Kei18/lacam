@@ -72,7 +72,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
                std::mt19937* MT)
 {
   const auto N = ins.N;
-  const auto K = ins.G.V.size();
+  const auto K = ins.G.size();
 
   // create distance table
   const auto dist_table = DistTable(ins);

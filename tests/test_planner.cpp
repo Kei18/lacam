@@ -1,5 +1,5 @@
+#include <fast_mapf.hpp>
 #include <iostream>
-#include <planner.hpp>
 
 #include "gtest/gtest.h"
 

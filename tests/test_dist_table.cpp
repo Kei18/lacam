@@ -1,4 +1,4 @@
-#include <dist_table.hpp>
+#include <fast_mapf.hpp>
 #include <iostream>
 
 #include "gtest/gtest.h"

@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
   const auto output_name = program.get<std::string>("output");
   const auto N = std::stoi(program.get<std::string>("num"));
   const auto ins = Instance(scen_name, map_name, N);
-  if (!is_valid_instance(ins, verbose)) return 1;
+  if (!ins.is_valid(verbose)) return 1;
 
   // solve
   auto MT = std::mt19937(seed);

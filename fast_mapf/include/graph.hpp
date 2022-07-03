@@ -15,9 +15,11 @@ struct Graph {
   int width;
   int height;
   Graph();
+  Graph(const std::string& filename);
   ~Graph();
+
+  int size() const;
+  int get_num_vertices() const;
 };
 
-void load_graph(Graph& G, const std::string& filename);
-int get_num_vertices(const Graph& G);
 bool is_same_config(const Config& C1, const Config& C2);
