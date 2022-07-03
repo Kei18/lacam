@@ -1,10 +1,12 @@
 #pragma once
 
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <numeric>
 #include <queue>
 #include <random>
+#include <regex>
 #include <stack>
 #include <string>
 #include <unordered_map>

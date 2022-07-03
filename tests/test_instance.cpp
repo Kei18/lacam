@@ -11,6 +11,6 @@ TEST(Instance, initialize)
 
   ASSERT_EQ(size(ins.starts), 3);
   ASSERT_EQ(size(ins.goals), 3);
-  ASSERT_EQ(ins.starts[0]->id, 358);
-  ASSERT_EQ(ins.goals[0]->id, 242);
+  ASSERT_EQ(ins.starts[0]->id, 203);
+  ASSERT_EQ(ins.goals[0]->id, 583);
 }

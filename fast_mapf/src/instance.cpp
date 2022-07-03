@@ -1,10 +1,6 @@
 #include "../include/instance.hpp"
 
-#include <fstream>
-#include <iostream>
-#include <regex>
-
-const std::regex r_instance =
+static const std::regex r_instance =
     std::regex(R"(\d+\t.+\.map\t\d+\t\d+\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t.+)");
 
 Instance::Instance(const std::string& scen_filename,
@@ -39,13 +35,13 @@ Instance::Instance(const std::string& scen_filename,
       goals.push_back(g);
     }
 
-    if (size(starts) == N) break;
+    if (starts.size() == N) break;
   }
 }
 
 bool is_valid_instance(const Instance& ins, const int verbose)
 {
-  if (ins.N != size(ins.starts)) {
+  if (ins.N != ins.starts.size()) {
     info(1, verbose, "invalid N, check instance");
     return false;
   }
@@ -72,7 +68,7 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
     return false;
   }
 
-  for (auto t = 1; t < size(solution); ++t) {
+  for (auto t = 1; t < solution.size(); ++t) {
     for (auto i = 0; i < ins.N; ++i) {
       auto v_i_from = solution[t - 1][i];
       auto v_i_to = solution[t][i];
@@ -105,11 +101,11 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
   return true;
 }
 
-int get_makespan(const Solution& solution) { return size(solution) - 1; }
+int get_makespan(const Solution& solution) { return solution.size() - 1; }
 
 int get_path_cost(const Solution& solution, int i)
 {
-  const auto makespan = size(solution);
+  const auto makespan = solution.size();
   const auto g = solution.back()[i];
   auto c = makespan;
   while (c > 0 && solution[c - 1][i] == g) --c;
@@ -119,7 +115,7 @@ int get_path_cost(const Solution& solution, int i)
 int get_sum_of_costs(const Solution& solution)
 {
   int c = 0;
-  const auto N = size(solution.front());
+  const auto N = solution.front().size();
   for (auto i = 0; i < N; ++i) c += get_path_cost(solution, i);
   return c;
 }
