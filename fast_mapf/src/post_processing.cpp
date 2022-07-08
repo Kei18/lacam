@@ -92,13 +92,16 @@ static const std::regex r_map_name = std::regex(R"(.+/(.+))");
 
 void make_log(const Instance& ins, const Solution& solution,
               const std::string& output_name, const double comp_time_ms,
-              const std::string& map_name)
+              const std::string& map_name, const bool log_short)
 {
   // map name
   std::smatch results;
   const auto map_recorded_name =
       (std::regex_match(map_name, results, r_map_name)) ? results[1].str()
                                                         : map_name;
+
+  // instance values
+  const auto dist_table = DistTable(ins);
 
   // log for visualizer
   auto get_x = [&](int k) { return k % ins.G.width; };
@@ -110,8 +113,11 @@ void make_log(const Instance& ins, const Solution& solution,
   log << "solver=planner\n";
   log << "solved=" << !solution.empty() << "\n";
   log << "soc=" << get_sum_of_costs(solution) << "\n";
+  log << "soc_lb=" << get_sum_of_costs_lower_bound(ins, dist_table) << "\n";
   log << "makespan=" << get_makespan(solution) << "\n";
+  log << "makespan_lb=" << get_makespan_lower_bound(ins, dist_table) << "\n";
   log << "comp_time=" << comp_time_ms << "\n";
+  if (log_short) return;
   log << "starts=";
   for (auto i = 0; i < ins.N; ++i) {
     auto k = ins.starts[i]->id;

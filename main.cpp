@@ -19,6 +19,9 @@ int main(int argc, char* argv[])
   program.add_argument("-o", "--output")
       .help("output file")
       .default_value(std::string("./build/result.txt"));
+  program.add_argument("-l", "--log_short")
+      .default_value(false)
+      .implicit_value(true);
 
   try {
     program.parse_args(argc, argv);
@@ -36,6 +39,7 @@ int main(int argc, char* argv[])
   const auto seed = std::stoi(program.get<std::string>("seed"));
   const auto map_name = program.get<std::string>("map");
   const auto output_name = program.get<std::string>("output");
+  const auto log_short = program.get<bool>("log_short");
   const auto N = std::stoi(program.get<std::string>("num"));
   const auto ins = Instance(scen_name, map_name, N);
   if (!ins.is_valid(verbose)) return 1;
@@ -56,6 +60,6 @@ int main(int argc, char* argv[])
 
   // post processing
   print_stats(verbose, ins, solution, comp_time_ms);
-  make_log(ins, solution, output_name, comp_time_ms, map_name);
+  make_log(ins, solution, output_name, comp_time_ms, map_name, log_short);
   return 0;
 }
