@@ -14,13 +14,3 @@ TEST(Instance, initialize)
   ASSERT_EQ(ins.starts[0]->id, 203);
   ASSERT_EQ(ins.goals[0]->id, 583);
 }
-
-TEST(Solution, metrics)
-{
-  // const auto map_filename = "./assets/map/empty-8-8.map";
-  // auto solution = Solution();
-
-  // solution.push_back([1, 2, 3]);
-  // solution.push_back([2, 3, 4]);
-  // solution.push_back([ 2, 3, 4 ]);
-}

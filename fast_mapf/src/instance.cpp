@@ -1,5 +1,17 @@
 #include "../include/instance.hpp"
 
+Instance::Instance(const std::string& map_filename,
+                   const std::vector<int>& start_indexes,
+                   const std::vector<int>& goal_indexes)
+    : G(map_filename),
+      starts(Config()),
+      goals(Config()),
+      N(start_indexes.size())
+{
+  for (auto k : start_indexes) starts.push_back(G.V[k]);
+  for (auto k : goal_indexes) goals.push_back(G.V[k]);
+}
+
 static const std::regex r_instance =
     std::regex(R"(\d+\t.+\.map\t\d+\t\d+\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t.+)");
 

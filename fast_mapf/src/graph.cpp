@@ -7,6 +7,7 @@ Graph::~Graph()
 {
   for (auto v : V)
     if (v != nullptr) delete v;
+  V.clear();
 }
 
 const std::regex r_height = std::regex(R"(height\s(\d+))");
