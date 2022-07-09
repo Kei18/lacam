@@ -10,6 +10,9 @@ struct DistTable {
   int get(int i, Vertex* v) const { return table[i][v->id]; }
 
   DistTable(const Instance& ins);
+  DistTable(const Instance* ins);
+
+  void setup(const Instance* ins);
 };
 
 int get_makespan_lower_bound(const Instance& ins, const DistTable& dist_table);

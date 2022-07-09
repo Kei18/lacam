@@ -47,6 +47,29 @@ struct Agent {
 };
 using Agents = std::vector<Agent*>;
 
+struct Planner {
+  const Instance* ins;
+  const Deadline* deadline;
+  std::mt19937* MT;
+  const int verbose;
+
+  // solver utils
+  const int N;  // number of agents
+  const int V_size;
+  const DistTable D;
+  Candidates C_next;
+  std::vector<float> tie_breakers;
+  Agents A;
+  Agents occupied_now;
+  Agents occupied_next;
+
+  Planner(const Instance* _ins, const Deadline* _deadline, std::mt19937* _MT,
+          int _verbose = 0);
+  Solution solve();
+  bool set_new_config(Node* S, Constraint* M);
+  bool funcPIBT(Agent* ai, Agent* aj);
+};
+
 float get_cost(Config& C, const DistTable& dist_table);
 std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
 std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
@@ -54,10 +77,3 @@ std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
-bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
-                    Agents& occupied_next, const DistTable& dist_table,
-                    Candidates& C_next, std::vector<float>& tie_breakers,
-                    std::mt19937* MT);
-bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table, Candidates& C_next,
-              std::vector<float>& tie_breakers, std::mt19937* MT);
