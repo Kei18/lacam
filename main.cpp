@@ -51,12 +51,13 @@ int main(int argc, char* argv[])
   const auto comp_time_ms = deadline.elapsed_ms();
 
   // failure
-  if (solution.empty()) {
-    info(1, verbose, "failed to solve");
-    return 0;
-  }
+  if (solution.empty()) info(1, verbose, "failed to solve");
+
   // check feasibility
-  if (!is_feasible_solution(ins, solution, verbose)) return 1;
+  if (!is_feasible_solution(ins, solution, verbose)) {
+    info(0, verbose, "invalid solution");
+    return 1;
+  }
 
   // post processing
   print_stats(verbose, ins, solution, comp_time_ms);

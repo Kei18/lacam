@@ -5,10 +5,7 @@
 bool is_feasible_solution(const Instance& ins, const Solution& solution,
                           const int verbose)
 {
-  if (solution.empty()) {
-    info(1, verbose, "empty solution");
-    return false;
-  }
+  if (solution.empty()) return true;
 
   // check start
   if (!is_same_config(solution.front(), ins.starts)) {
@@ -55,7 +52,11 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
   return true;
 }
 
-int get_makespan(const Solution& solution) { return solution.size() - 1; }
+int get_makespan(const Solution& solution)
+{
+  if (solution.empty()) return 0;
+  return solution.size() - 1;
+}
 
 int get_path_cost(const Solution& solution, int i)
 {
@@ -68,6 +69,7 @@ int get_path_cost(const Solution& solution, int i)
 
 int get_sum_of_costs(const Solution& solution)
 {
+  if (solution.empty()) return 0;
   int c = 0;
   const auto N = solution.front().size();
   for (auto i = 0; i < N; ++i) c += get_path_cost(solution, i);
