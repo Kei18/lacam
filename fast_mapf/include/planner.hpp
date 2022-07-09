@@ -53,9 +53,8 @@ std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
-bool create_successor_config_by_PIBT(Node* S, Agents& A, Agents& occupied_now,
-                                     Agents& occupied_next,
-                                     const DistTable& dist_table,
-                                     std::mt19937* MT);
+bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
+                    Agents& occupied_next, const DistTable& dist_table,
+                    std::mt19937* MT);
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
               const DistTable& dist_table, std::mt19937* MT);

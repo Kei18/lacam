@@ -136,70 +136,25 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
     }
 
     // create successor for high-level search by PIBT
-    {
-      // setup occupied_now
-      for (auto a : A) {
-        // clear previous cache
-        if (a->v_now != nullptr && occupied_now[a->v_now->id] == a) {
-          occupied_now[a->v_now->id] = nullptr;
-        }
-        if (a->v_next != nullptr) {
-          occupied_next[a->v_next->id] = nullptr;
-          a->v_next = nullptr;
-        }
+    if (!set_new_config(S, M, A, occupied_now, occupied_next, dist_table, MT))
+      continue;
 
-        // set occupied now
-        a->v_now = S->C[a->id];
-        occupied_now[a->v_now->id] = a;
-      }
+    // create new configuration
+    auto C = Config(N, nullptr);
+    for (auto a : A) C[a->id] = a->v_next;
 
-      // setup constraint
-      bool invalid = false;
-      for (auto k = 0; k < M->depth; ++k) {
-        const auto i = M->who[k];        // agent
-        const auto l = M->where[k]->id;  // loc
-
-        // check vertex collision
-        if (occupied_next[l] != nullptr) {
-          invalid = true;
-          break;
-        }
-        // check swap collision
-        auto l_pre = S->C[i]->id;
-        if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
-            occupied_next[l_pre]->id == occupied_now[l]->id) {
-          invalid = true;
-          break;
-        }
-
-        // set occupied_next
-        A[i]->v_next = M->where[k];
-        occupied_next[l] = A[i];
-      }
-      if (invalid) continue;
-
-      // run PIBT
-      if (!create_successor_config_by_PIBT(S, A, occupied_now, occupied_next,
-                                           dist_table, MT))
-        continue;
-
-      // create new configuration
-      auto C = Config(N, nullptr);
-      for (auto a : A) C[a->id] = a->v_next;
-
-      // check explored list
-      auto S_new_id = get_id(C);
-      auto iter = EXPLORED.find(S_new_id);
-      if (iter != EXPLORED.end()) {
-        OPEN.push(iter->second);
-        continue;
-      }
-
-      // insert new search node
-      auto S_new = new Node(C, dist_table, S_new_id, S);
-      OPEN.push(S_new);
-      EXPLORED[S_new->id] = S_new;
+    // check explored list
+    auto S_new_id = get_id(C);
+    auto iter = EXPLORED.find(S_new_id);
+    if (iter != EXPLORED.end()) {
+      OPEN.push(iter->second);
+      continue;
     }
+
+    // insert new search node
+    auto S_new = new Node(C, dist_table, S_new_id, S);
+    OPEN.push(S_new);
+    EXPLORED[S_new->id] = S_new;
   }
 
   // memory management
@@ -211,11 +166,45 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
   return solution;
 }
 
-bool create_successor_config_by_PIBT(Node* S, Agents& A, Agents& occupied_now,
-                                     Agents& occupied_next,
-                                     const DistTable& dist_table,
-                                     std::mt19937* MT)
+bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
+                    Agents& occupied_next, const DistTable& dist_table,
+                    std::mt19937* MT)
 {
+  // setup occupied_now
+  for (auto a : A) {
+    // clear previous cache
+    if (a->v_now != nullptr && occupied_now[a->v_now->id] == a) {
+      occupied_now[a->v_now->id] = nullptr;
+    }
+    if (a->v_next != nullptr) {
+      occupied_next[a->v_next->id] = nullptr;
+      a->v_next = nullptr;
+    }
+
+    // set occupied now
+    a->v_now = S->C[a->id];
+    occupied_now[a->v_now->id] = a;
+  }
+
+  // add constraints
+  for (auto k = 0; k < M->depth; ++k) {
+    const auto i = M->who[k];        // agent
+    const auto l = M->where[k]->id;  // loc
+
+    // check vertex collision
+    if (occupied_next[l] != nullptr) return false;
+    // check swap collision
+    auto l_pre = S->C[i]->id;
+    if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
+        occupied_next[l_pre]->id == occupied_now[l]->id)
+      return false;
+
+    // set occupied_next
+    A[i]->v_next = M->where[k];
+    occupied_next[l] = A[i];
+  }
+
+  // add usual PIBT
   for (auto k : S->order) {
     auto a = A[k];
     if (a->v_next == nullptr) {
