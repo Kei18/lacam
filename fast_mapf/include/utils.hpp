@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -33,6 +34,11 @@ struct Deadline {
 
   Deadline(double _time_limit_ms = 0);
   double elapsed_ms() const;
+  double elapsed_ns() const;
 };
 
+double elapsed_ms(const Deadline* deadline);
+double elapsed_ns(const Deadline* deadline);
 bool is_expired(const Deadline* deadline);
+
+float get_random_float(std::mt19937* MT, float from = 0, float to = 1);

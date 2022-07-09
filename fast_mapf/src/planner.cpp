@@ -77,6 +77,11 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
   // create distance table
   const auto dist_table = DistTable(ins);
 
+  // memory allocation
+  auto C_next =
+      std::vector<std::array<Vertex*, 5> >(N, std::array<Vertex*, 5>());
+  auto tie_breakers = std::vector<float>(K, 0);
+
   // setup PIBT
   auto occupied_now = Agents(K, nullptr);
   auto occupied_next = Agents(K, nullptr);
@@ -104,7 +109,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
 
     // check goal condition
     if (is_same_config(S->C, ins.goals)) {
-      info(1, verbose, "elapsed:", deadline->elapsed_ms(),
+      info(1, verbose, "elapsed:", elapsed_ms(deadline),
            "\texpanded:", loop_cnt, "\texplored:", EXPLORED.size());
       // backtrack
       while (S != nullptr) {
@@ -136,7 +141,8 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
     }
 
     // create successor for high-level search by PIBT
-    if (!set_new_config(S, M, A, occupied_now, occupied_next, dist_table, MT))
+    if (!set_new_config(S, M, A, occupied_now, occupied_next, dist_table,
+                        C_next, tie_breakers, MT))
       continue;
 
     // create new configuration
@@ -158,7 +164,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
   }
 
   // memory management
-  info(1, verbose, "elapsed:", deadline->elapsed_ms(), "\tfree memory");
+  info(1, verbose, "elapsed:", elapsed_ms(deadline), "\tfree memory");
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
   for (auto p : EXPLORED) delete p.second;
@@ -168,6 +174,7 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
 
 bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
                     Agents& occupied_next, const DistTable& dist_table,
+                    Candidates& C_next, std::vector<float>& tie_breakers,
                     std::mt19937* MT)
 {
   // setup occupied_now
@@ -208,7 +215,8 @@ bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
   for (auto k : S->order) {
     auto a = A[k];
     if (a->v_next == nullptr) {
-      if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table, MT)) {
+      if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table, C_next,
+                    tie_breakers, MT)) {
         return false;
       }
     }
@@ -217,19 +225,39 @@ bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
 }
 
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table, std::mt19937* MT)
+              const DistTable& dist_table, Candidates& C_next,
+              std::vector<float>& tie_breakers, std::mt19937* MT)
 {
-  // get candidates
-  auto C = ai->v_now->neighbor;
-  C.push_back(ai->v_now);
-  // randomize  <- important!
-  if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);
-  // sort
-  std::sort(C.begin(), C.end(), [&](Vertex* const v, Vertex* const u) {
-    return dist_table.get(ai->id, v) < dist_table.get(ai->id, u);
-  });
+  const auto i = ai->id;
+  const auto K = ai->v_now->neighbor.size();
 
-  for (auto u : C) {
+  // get candidates
+  for (auto k = 0; k < K; ++k) {
+    auto u = ai->v_now->neighbor[k];
+    C_next[i][k] = u;
+    if (MT != nullptr) tie_breakers[u->id] = get_random_float(MT);
+  }
+  C_next[i][K] = ai->v_now;
+  if (MT != nullptr) tie_breakers[ai->v_now->id] = get_random_float(MT);
+  for (auto k = K + 1; k < 5; ++k) C_next[i][k] = nullptr;
+
+  // sort
+  std::sort(C_next[i].begin(), C_next[i].end(),
+            [&](Vertex* const v, Vertex* const u) {
+              if (v != nullptr && u == nullptr) return true;
+              if (v == nullptr && u != nullptr) return false;
+              if (v != nullptr && u != nullptr) {
+                auto d_v = dist_table.get(ai->id, v);
+                auto d_u = dist_table.get(ai->id, u);
+                if (d_v != d_u) return d_v < d_u;
+                return tie_breakers[v->id] < tie_breakers[u->id];
+              }
+              return false;
+            });
+
+  for (auto u : C_next[i]) {
+    if (u == nullptr) break;
+
     // avoid vertex conflicts
     if (occupied_next[u->id] != nullptr) continue;
     // avoid swap conflicts
@@ -249,7 +277,8 @@ bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
 
     // priority inheritance
     if (ak->v_next == nullptr) {
-      if (!funcPIBT(ak, ai, occupied_now, occupied_next, dist_table, MT))
+      if (!funcPIBT(ak, ai, occupied_now, occupied_next, dist_table, C_next,
+                    tie_breakers, MT))
         continue;  // replanning
     }
     // success to plan next one step

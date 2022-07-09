@@ -37,6 +37,7 @@ struct Node {
   ~Node();
 };
 using Nodes = std::vector<Node*>;
+using Candidates = std::vector<std::array<Vertex*, 5> >;
 
 struct Agent {
   int id;
@@ -55,6 +56,8 @@ Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
 bool set_new_config(Node* S, Constraint* M, Agents& A, Agents& occupied_now,
                     Agents& occupied_next, const DistTable& dist_table,
+                    Candidates& C_next, std::vector<float>& tie_breakers,
                     std::mt19937* MT);
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table, std::mt19937* MT);
+              const DistTable& dist_table, Candidates& C_next,
+              std::vector<float>& tie_breakers, std::mt19937* MT);
