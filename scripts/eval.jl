@@ -6,7 +6,7 @@ include("summary.jl")
 function main()
     map_name_arr = ["random-32-32-20"]
     agents = [100, 200, 300, 400]
-    scen_num = 10
+    scen_num = 25
     time_limit_sec = 30
     num_total_tasks = length(map_name_arr) * length(agents) * scen_num
 
@@ -14,11 +14,11 @@ function main()
     cnt_fin = Threads.Atomic{Int}(0)
     loops = collect(enumerate(Iterators.product(map_name_arr, 1:scen_num, agents)))
     Threads.@threads for (k, (map_name_short, scen, N)) in loops
-        output_file = "build/result.txt"
+        output_file = "build/result-$(k).txt"
         map_name = joinpath(@__DIR__, "..", "assets", "map", "$(map_name_short).map")
         scen_name = joinpath(@__DIR__, "..", "assets", "scen", "local",
             "$(map_name_short)-random-$(scen).scen")
-        run(`./build/main -m $map_name -i $scen_name -N $N -o $output_file -t $time_limit_sec`)
+        run(`./build/main -m $map_name -i $scen_name -N $N -o $output_file -t $time_limit_sec -l`)
         Threads.atomic_add!(cnt_fin, 1)
         print("\r$(cnt_fin[])/$(num_total_tasks) tasks have been finished";)
         row = Dict(:N => N, :map_name => map_name_short, :scen => scen)
@@ -37,6 +37,7 @@ function main()
             !isnothing(m) && (row[:solved] = parse(Int, m[1]))
         end
         result[k] = NamedTuple{Tuple(keys(row))}(values(row))
+        rm(output_file)
     end
     println()
     date_str = replace(string(Dates.now()), ":" => "-")

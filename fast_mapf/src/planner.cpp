@@ -104,6 +104,8 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
 
     // check goal condition
     if (is_same_config(S->C, ins.goals)) {
+      info(1, verbose, "elapsed:", deadline->elapsed_ms(),
+           "\texpanded:", loop_cnt, "\texplored:", EXPLORED.size());
       // backtrack
       while (S != nullptr) {
         solution.push_back(S->C);
@@ -176,33 +178,10 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
       }
       if (invalid) continue;
 
-      if (M->depth == 1) {
-        int c = 0;
-        int k = -1;
-        int l = 0;
-        for (auto i = 0; i < N; ++i) {
-          auto d = dist_table.get(i, S->C[i]);
-          if (d > 0) l += 1;
-          if (d > c) {
-            k = i;
-            c = d;
-          }
-        }
-      }
-
       // run PIBT
-      for (auto k : S->order) {
-        auto a = A[k];
-        if (a->v_next == nullptr) {
-          if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table,
-                        MT)) {
-            invalid = true;
-            break;
-          }
-        }
-      }
-
-      if (invalid) continue;
+      if (!create_successor_config_by_PIBT(S, A, occupied_now, occupied_next,
+                                           dist_table, MT))
+        continue;
 
       // create new configuration
       auto C = Config(N, nullptr);
@@ -224,11 +203,28 @@ Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
   }
 
   // memory management
+  info(1, verbose, "elapsed:", deadline->elapsed_ms(), "\tfree memory");
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
   for (auto p : EXPLORED) delete p.second;
 
   return solution;
+}
+
+bool create_successor_config_by_PIBT(Node* S, Agents& A, Agents& occupied_now,
+                                     Agents& occupied_next,
+                                     const DistTable& dist_table,
+                                     std::mt19937* MT)
+{
+  for (auto k : S->order) {
+    auto a = A[k];
+    if (a->v_next == nullptr) {
+      if (!funcPIBT(a, nullptr, occupied_now, occupied_next, dist_table, MT)) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
