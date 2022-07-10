@@ -1,7 +1,5 @@
 #pragma once
 
-#include <random>
-
 #include "dist_table.hpp"
 #include "graph.hpp"
 #include "instance.hpp"
@@ -32,7 +30,7 @@ struct Node {
 };
 
 struct Agent {
-  int id;
+  const int id;
   Vertex* v_now;   // current location
   Vertex* v_next;  // next location
   Agent(int _id) : id(_id), v_now(nullptr), v_next(nullptr) {}
@@ -62,7 +60,9 @@ struct Planner {
           int _verbose = 0);
   Solution solve();
   bool set_new_config(Node* S, Constraint* M);
-  bool funcPIBT(Agent* ai, Agent* aj);
+  bool funcPIBT(Agent* ai, Agent* aj = nullptr);
+
+  bool funcGreedy(Agent* ai);
 };
 
 std::string get_id(Config& C);
