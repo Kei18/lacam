@@ -11,14 +11,9 @@ struct Constraint {
   std::vector<int> who;
   Vertices where;
   const int depth;
-  Constraint() : who(std::vector<int>()), where(Vertices()), depth(0) {}
-  Constraint(Constraint* parent, int i, Vertex* v)
-      : who(parent->who), where(parent->where), depth(parent->depth + 1)
-  {
-    who.push_back(i);
-    where.push_back(v);
-  }
-  ~Constraint() {}
+  Constraint();
+  Constraint(Constraint* parent, int i, Vertex* v);
+  ~Constraint();
 };
 
 struct Node {
@@ -32,11 +27,9 @@ struct Node {
   const std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
-  Node(Config _C, DistTable& D, std::string _id, Node* _parent);
+  Node(Config _C, DistTable& D, std::string _id = "", Node* _parent = nullptr);
   ~Node();
 };
-using Nodes = std::vector<Node*>;
-using Candidates = std::vector<std::array<Vertex*, 5> >;
 
 struct Agent {
   int id;
@@ -44,6 +37,9 @@ struct Agent {
   Vertex* v_next;  // next location
   Agent(int _id) : id(_id), v_now(nullptr), v_next(nullptr) {}
 };
+
+using Nodes = std::vector<Node*>;
+using Candidates = std::vector<std::array<Vertex*, 5> >;
 using Agents = std::vector<Agent*>;
 
 struct Planner {
@@ -70,8 +66,7 @@ struct Planner {
 };
 
 std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
-std::vector<float> get_priorities(Config& C, DistTable& dist_table,
-                                  Node* _parent);
+std::vector<float> get_priorities(Config& C, DistTable& D, Node* _parent);
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);

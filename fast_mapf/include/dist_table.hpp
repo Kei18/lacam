@@ -5,6 +5,7 @@
 #include "utils.hpp"
 
 struct DistTable {
+  const int K;
   std::vector<std::vector<int> > table;
   std::vector<std::queue<Vertex*> > OPEN;
 

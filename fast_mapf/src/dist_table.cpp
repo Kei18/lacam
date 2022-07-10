@@ -3,13 +3,13 @@
 #include <climits>
 
 DistTable::DistTable(const Instance& ins)
-    : table(ins.N, std::vector<int>(ins.G.V.size(), INT_MAX))
+    : K(ins.G.V.size()), table(ins.N, std::vector<int>(K, K))
 {
   setup(&ins);
 }
 
 DistTable::DistTable(const Instance* ins)
-    : table(ins->N, std::vector<int>(ins->G.V.size(), INT_MAX))
+    : K(ins->G.V.size()), table(ins->N, std::vector<int>(K, K))
 {
   setup(ins);
 }
@@ -26,7 +26,7 @@ void DistTable::setup(const Instance* ins)
 
 int DistTable::get(int i, int v_id)
 {
-  if (table[i][v_id] != INT_MAX) return table[i][v_id];
+  if (table[i][v_id] < K) return table[i][v_id];
 
   while (!OPEN[i].empty()) {
     auto n = OPEN[i].front();
@@ -40,7 +40,7 @@ int DistTable::get(int i, int v_id)
     }
     if (n->id == v_id) return d_n;
   }
-  return INT_MAX;
+  return K;
 }
 
 int DistTable::get(int i, Vertex* v) { return get(i, v->id); }

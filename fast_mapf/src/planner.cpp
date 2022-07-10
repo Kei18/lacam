@@ -3,6 +3,17 @@
 #include <algorithm>
 #include <random>
 
+Constraint::Constraint() : who(std::vector<int>()), where(Vertices()), depth(0)
+{
+}
+Constraint::Constraint(Constraint* parent, int i, Vertex* v)
+    : who(parent->who), where(parent->where), depth(parent->depth + 1)
+{
+  who.push_back(i);
+  where.push_back(v);
+}
+Constraint::~Constraint(){};
+
 std::string get_id(Config& C)
 {
   std::string id = "";
@@ -10,18 +21,17 @@ std::string get_id(Config& C)
   return id;
 }
 
-std::vector<float> get_priorities(Config& C, DistTable& dist_table,
-                                  Node* parent)
+std::vector<float> get_priorities(Config& C, DistTable& D, Node* parent)
 {
   const auto N = C.size();
   auto P = std::vector<float>(C.size(), 0);
   if (parent == nullptr) {
     // initialize
-    for (auto i = 0; i < N; ++i) P[i] = dist_table.get(i, C[i]) / N;
+    for (auto i = 0; i < N; ++i) P[i] = D.get(i, C[i]) / N;
   } else {
     // dynamic priorities from PIBT
     for (auto i = 0; i < N; ++i) {
-      if (dist_table.get(i, C[i]) != 0) {
+      if (D.get(i, C[i]) != 0) {
         P[i] = parent->priorities[i] + 1;
       } else {
         P[i] = parent->priorities[i] - (int)parent->priorities[i];
@@ -40,13 +50,12 @@ std::vector<int> get_order(Config& C, const std::vector<float>& priorities)
   return A;
 }
 
-Node::Node(Config _C, DistTable& dist_table, std::string _id = "",
-           Node* _parent = nullptr)
+Node::Node(Config _C, DistTable& D, std::string _id, Node* _parent)
     : C(_C),
       id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
       depth(_parent == nullptr ? 0 : _parent->depth + 1),
-      priorities(get_priorities(_C, dist_table, _parent)),
+      priorities(get_priorities(_C, D, _parent)),
       order(get_order(_C, priorities)),
       search_tree(std::queue<Constraint*>())
 {
@@ -223,24 +232,18 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
   }
   C_next[i][K] = ai->v_now;
   if (MT != nullptr) tie_breakers[ai->v_now->id] = get_random_float(MT);
-  for (auto k = K + 1; k < 5; ++k) C_next[i][k] = nullptr;
 
   // sort
-  std::sort(C_next[i].begin(), C_next[i].end(),
+  std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
             [&](Vertex* const v, Vertex* const u) {
-              if (v != nullptr && u == nullptr) return true;
-              if (v == nullptr && u != nullptr) return false;
-              if (v != nullptr && u != nullptr) {
-                auto d_v = D.get(ai->id, v);
-                auto d_u = D.get(ai->id, u);
-                if (d_v != d_u) return d_v < d_u;
-                return tie_breakers[v->id] < tie_breakers[u->id];
-              }
-              return false;
+              auto d_v = D.get(ai->id, v);
+              auto d_u = D.get(ai->id, u);
+              if (d_v != d_u) return d_v < d_u;
+              return tie_breakers[v->id] < tie_breakers[u->id];
             });
 
-  for (auto u : C_next[i]) {
-    if (u == nullptr) break;
+  for (auto k = 0; k < K + 1; ++k) {
+    auto u = C_next[i][k];
 
     // avoid vertex conflicts
     if (occupied_next[u->id] != nullptr) continue;
