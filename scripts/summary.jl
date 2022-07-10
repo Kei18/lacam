@@ -31,7 +31,7 @@ end
 function plot_cactus(
     csv_filename::String;
     result_filename::String = (first(csv_filename) == '/' ? "/" : "") *
-                              joinpath(split(csv_filename, "/")[1:end-1]..., "cactus_plot.pdf")
+                              joinpath(split(csv_filename, "/")[1:end-1]..., "cactus_plot.png")
 )
     df = CSV.File(csv_filename) |> DataFrame
     plot(

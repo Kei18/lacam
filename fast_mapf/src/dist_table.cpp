@@ -1,13 +1,13 @@
 #include "../include/dist_table.hpp"
 
 DistTable::DistTable(const Instance& ins)
-    : table(ins.N, std::vector<int>(size(ins.G.V), INT_MAX))
+    : table(ins.N, std::vector<int>(ins.G.V.size(), INT_MAX))
 {
   setup(&ins);
 }
 
 DistTable::DistTable(const Instance* ins)
-    : table(ins->N, std::vector<int>(size(ins->G.V), INT_MAX))
+    : table(ins->N, std::vector<int>(ins->G.V.size(), INT_MAX))
 {
   setup(ins);
 }

@@ -23,7 +23,6 @@ struct Constraint {
 
 struct Node {
   const Config C;
-  const float cost;
   const std::string id;
   Node* parent;
   const int depth;
@@ -70,7 +69,6 @@ struct Planner {
   bool funcPIBT(Agent* ai, Agent* aj);
 };
 
-float get_cost(Config& C, const DistTable& dist_table);
 std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
 std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
                                   Node* _parent);

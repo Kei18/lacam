@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
   const auto log_short = program.get<bool>("log_short");
   const auto N = std::stoi(program.get<std::string>("num"));
   const auto ins = Instance(scen_name, map_name, N);
-  if (!ins.is_valid(verbose)) return 1;
+  if (!ins.is_valid(1)) return 1;
 
   // solve
   auto MT = std::mt19937(seed);

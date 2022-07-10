@@ -3,14 +3,6 @@
 #include <algorithm>
 #include <random>
 
-float get_cost(Config& C, const DistTable& dist_table)
-{
-  float cost = 0;
-  const auto N = C.size();
-  for (auto i = 0; i < N; ++i) cost += dist_table.get(i, C[i]);
-  return cost;
-}
-
 std::string get_id(Config& C)
 {
   std::string id = "";
@@ -24,8 +16,10 @@ std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
   const auto N = C.size();
   auto P = std::vector<float>(C.size(), 0);
   if (parent == nullptr) {
+    // initialize
     for (auto i = 0; i < N; ++i) P[i] = dist_table.get(i, C[i]) / N;
   } else {
+    // dynamic priorities from PIBT
     for (auto i = 0; i < N; ++i) {
       if (dist_table.get(i, C[i]) != 0) {
         P[i] = parent->priorities[i] + 1;
@@ -49,7 +43,6 @@ std::vector<int> get_order(Config& C, const std::vector<float>& priorities)
 Node::Node(Config _C, const DistTable& dist_table, std::string _id = "",
            Node* _parent = nullptr)
     : C(_C),
-      cost(get_cost(_C, dist_table)),
       id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
       depth(_parent == nullptr ? 0 : _parent->depth + 1),
@@ -87,6 +80,8 @@ Planner::Planner(const Instance* _ins, const Deadline* _deadline,
 
 Solution Planner::solve()
 {
+  info(1, verbose, "elapsed:", elapsed_ms(deadline), "\tstart search");
+
   // setup agents
   for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
 
@@ -134,11 +129,8 @@ Solution Planner::solve()
     if (M->depth < N) {
       auto i = S->order[M->depth];
       auto C = S->C[i]->neighbor;
-      // TODO: optimize
-      std::sort(C.begin(), C.end(), [&](Vertex* a, Vertex* b) {
-        return D.get(i, a) < D.get(i, b);
-      });
       C.push_back(S->C[i]);
+      std::shuffle(C.begin(), C.end(), *MT);  // randomize
       for (auto u : C) S->search_tree.push(new Constraint(M, i, u));
     }
 
@@ -153,7 +145,7 @@ Solution Planner::solve()
     auto S_new_id = get_id(C);
     auto iter = EXPLORED.find(S_new_id);
     if (iter != EXPLORED.end()) {
-      OPEN.push(iter->second);
+      if (iter->second != S->parent) OPEN.push(iter->second);
       continue;
     }
 
