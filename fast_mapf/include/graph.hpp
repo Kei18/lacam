@@ -25,6 +25,8 @@ struct Graph {
 
 bool is_same_config(const Config& C1, const Config& C2);
 
+// c.f.
+// https://stackoverflow.com/questions/10405030/c-unordered-map-fail-when-used-with-a-vector-as-key
 struct ConfigHasher {
   int operator()(const Config& C) const;
 };

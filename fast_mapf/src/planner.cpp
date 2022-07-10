@@ -1,8 +1,5 @@
 #include "../include/planner.hpp"
 
-#include <algorithm>
-#include <random>
-
 Constraint::Constraint() : who(std::vector<int>()), where(Vertices()), depth(0)
 {
 }
@@ -215,15 +212,12 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     if (MT != nullptr) tie_breakers[u->id] = get_random_float(MT);
   }
   C_next[i][K] = ai->v_now;
-  if (MT != nullptr) tie_breakers[ai->v_now->id] = get_random_float(MT);
 
   // sort
   std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
             [&](Vertex* const v, Vertex* const u) {
-              auto d_v = D.get(ai->id, v);
-              auto d_u = D.get(ai->id, u);
-              if (d_v != d_u) return d_v < d_u;
-              return tie_breakers[v->id] < tie_breakers[u->id];
+              return D.get(i, v) + tie_breakers[v->id] <
+                     D.get(i, u) + tie_breakers[u->id];
             });
 
   for (auto k = 0; k < K + 1; ++k) {
