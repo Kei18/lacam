@@ -80,7 +80,7 @@ Planner::Planner(const Instance* _ins, const Deadline* _deadline,
 
 Solution Planner::solve()
 {
-  info(1, verbose, "elapsed:", elapsed_ms(deadline), "\tstart search");
+  info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\tstart search");
 
   // setup agents
   for (auto i = 0; i < N; ++i) A[i] = new Agent(i);
@@ -155,7 +155,8 @@ Solution Planner::solve()
     EXPLORED[S_new->id] = S_new;
   }
 
-  info(1, verbose, "elapsed:", elapsed_ms(deadline), "\texpanded:", loop_cnt,
+  info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
+       solution.empty() ? "failed" : "solution found", "\texpanded:", loop_cnt,
        "\texplored:", EXPLORED.size());
   // memory management
   for (auto a : A) delete a;
@@ -274,6 +275,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
 Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
                std::mt19937* MT)
 {
+  info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\tpre-processing");
   auto planner = Planner(&ins, deadline, MT, verbose);
   return planner.solve();
 }

@@ -50,6 +50,44 @@ Instance::Instance(const std::string& scen_filename,
   }
 }
 
+Instance::Instance(const std::string& map_filename, std::mt19937* MT,
+                   const int _N)
+    : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N)
+{
+  // random assignment
+  const auto K = G.size();
+
+  // set starts
+  auto s_indexes = std::vector<int>(K);
+  std::iota(s_indexes.begin(), s_indexes.end(), 0);
+  std::shuffle(s_indexes.begin(), s_indexes.end(), *MT);
+  int i = 0;
+  while (true) {
+    while (G.V[s_indexes[i]] == nullptr) {
+      ++i;
+      if (i >= K) return;
+    }
+    starts.push_back(G.V[s_indexes[i]]);
+    if (starts.size() == N) break;
+    ++i;
+  }
+
+  // set goals
+  auto g_indexes = std::vector<int>(K);
+  std::iota(g_indexes.begin(), g_indexes.end(), 0);
+  std::shuffle(g_indexes.begin(), g_indexes.end(), *MT);
+  int j = 0;
+  while (true) {
+    while (G.V[g_indexes[j]] == nullptr) {
+      ++j;
+      if (j >= K) return;
+    }
+    goals.push_back(G.V[g_indexes[j]]);
+    if (goals.size() == N) break;
+    ++j;
+  }
+}
+
 bool Instance::is_valid(const int verbose) const
 {
   if (N != starts.size() || N != goals.size()) {
