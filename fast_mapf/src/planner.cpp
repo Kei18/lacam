@@ -21,45 +21,37 @@ std::string get_id(Config& C)
   return id;
 }
 
-std::vector<float> get_priorities(Config& C, DistTable& D, Node* parent)
-{
-  const auto N = C.size();
-  auto P = std::vector<float>(C.size(), 0);
-  if (parent == nullptr) {
-    // initialize
-    for (auto i = 0; i < N; ++i) P[i] = D.get(i, C[i]) / N;
-  } else {
-    // dynamic priorities from PIBT
-    for (auto i = 0; i < N; ++i) {
-      if (D.get(i, C[i]) != 0) {
-        P[i] = parent->priorities[i] + 1;
-      } else {
-        P[i] = parent->priorities[i] - (int)parent->priorities[i];
-      }
-    }
-  }
-  return P;
-}
-
-std::vector<int> get_order(Config& C, const std::vector<float>& priorities)
-{
-  std::vector<int> A(C.size());
-  std::iota(A.begin(), A.end(), 0);
-  std::sort(A.begin(), A.end(),
-            [&](int i, int j) { return priorities[i] > priorities[j]; });
-  return A;
-}
-
 Node::Node(Config _C, DistTable& D, std::string _id, Node* _parent)
     : C(_C),
       id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
       depth(_parent == nullptr ? 0 : _parent->depth + 1),
-      priorities(get_priorities(_C, D, _parent)),
-      order(get_order(_C, priorities)),
+      priorities(C.size(), 0),
+      order(C.size(), 0),
       search_tree(std::queue<Constraint*>())
 {
   search_tree.push(new Constraint());
+  const auto N = C.size();
+
+  // set priorities
+  if (parent == nullptr) {
+    // initialize
+    for (auto i = 0; i < N; ++i) priorities[i] = D.get(i, C[i]) / N;
+  } else {
+    // dynamic priorities from PIBT
+    for (auto i = 0; i < N; ++i) {
+      if (D.get(i, C[i]) != 0) {
+        priorities[i] = parent->priorities[i] + 1;
+      } else {
+        priorities[i] = parent->priorities[i] - (int)parent->priorities[i];
+      }
+    }
+  }
+
+  // set order
+  std::iota(order.begin(), order.end(), 0);
+  std::sort(order.begin(), order.end(),
+            [&](int i, int j) { return priorities[i] > priorities[j]; });
 }
 
 Node::~Node()

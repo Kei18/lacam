@@ -23,8 +23,8 @@ struct Node {
   const int depth;
 
   // for low-level search
-  const std::vector<float> priorities;
-  const std::vector<int> order;
+  std::vector<float> priorities;
+  std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
   Node(Config _C, DistTable& D, std::string _id = "", Node* _parent = nullptr);
@@ -65,8 +65,6 @@ struct Planner {
   bool funcPIBT(Agent* ai, Agent* aj);
 };
 
-std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
-std::vector<float> get_priorities(Config& C, DistTable& D, Node* _parent);
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
