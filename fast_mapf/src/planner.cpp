@@ -207,7 +207,6 @@ bool Planner::set_new_config(Node* S, Constraint* M)
   for (auto k : S->order) {
     auto a = A[k];
     if (a->v_next == nullptr && !funcPIBT(a)) return false;
-    // if (a->v_next == nullptr && !funcGreedy(a)) return false;
   }
   return true;
 }
@@ -265,50 +264,6 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
   // failed to secure node
   occupied_next[ai->v_now->id] = ai;
   ai->v_next = ai->v_now;
-  return false;
-}
-
-bool Planner::funcGreedy(Agent* ai)
-{
-  const auto i = ai->id;
-  const auto K = ai->v_now->neighbor.size();
-
-  // get candidates
-  for (auto k = 0; k < K; ++k) {
-    auto u = ai->v_now->neighbor[k];
-    C_next[i][k] = u;
-    if (MT != nullptr) tie_breakers[u->id] = get_random_float(MT);
-  }
-  C_next[i][K] = ai->v_now;
-  if (MT != nullptr) tie_breakers[ai->v_now->id] = get_random_float(MT);
-
-  // sort
-  std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
-            [&](Vertex* const v, Vertex* const u) {
-              auto d_v = D.get(ai->id, v);
-              auto d_u = D.get(ai->id, u);
-              if (d_v != d_u) return d_v < d_u;
-              return tie_breakers[v->id] < tie_breakers[u->id];
-            });
-
-  for (auto k = 0; k < K + 1; ++k) {
-    auto u = C_next[i][k];
-
-    // avoid vertex conflicts
-    if (occupied_next[u->id] != nullptr) continue;
-
-    auto ak = occupied_now[u->id];
-
-    // avoid swap confilicts with constraints
-    if (ak != nullptr && ak->v_next == ai->v_now) continue;
-
-    // reserve
-    ai->v_next = u;
-    occupied_next[u->id] = ai;
-
-    // success to plan next one step
-    return true;
-  }
   return false;
 }
 

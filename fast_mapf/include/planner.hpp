@@ -61,8 +61,6 @@ struct Planner {
   Solution solve();
   bool set_new_config(Node* S, Constraint* M);
   bool funcPIBT(Agent* ai, Agent* aj = nullptr);
-
-  bool funcGreedy(Agent* ai);
 };
 
 std::string get_id(Config& C);
