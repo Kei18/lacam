@@ -1,5 +1,7 @@
 #include "../include/dist_table.hpp"
 
+#include <climits>
+
 DistTable::DistTable(const Instance& ins)
     : table(ins.N, std::vector<int>(ins.G.V.size(), INT_MAX))
 {
@@ -15,26 +17,35 @@ DistTable::DistTable(const Instance* ins)
 void DistTable::setup(const Instance* ins)
 {
   for (int i = 0; i < ins->N; ++i) {
-    // breadth first search
-    std::queue<Vertex*> OPEN;
+    OPEN.push_back(std::queue<Vertex*>());
     auto n = ins->goals[i];
-    OPEN.push(n);
+    OPEN[i].push(n);
     table[i][n->id] = 0;
-    while (!OPEN.empty()) {
-      n = OPEN.front();
-      OPEN.pop();
-      const int d_n = table[i][n->id];
-      for (auto m : n->neighbor) {
-        const int d_m = table[i][m->id];
-        if (d_n + 1 >= d_m) continue;
-        table[i][m->id] = d_n + 1;
-        OPEN.push(m);
-      }
-    }
   }
 }
 
-int get_makespan_lower_bound(const Instance& ins, const DistTable& dist_table)
+int DistTable::get(int i, int v_id)
+{
+  if (table[i][v_id] != INT_MAX) return table[i][v_id];
+
+  while (!OPEN[i].empty()) {
+    auto n = OPEN[i].front();
+    OPEN[i].pop();
+    const int d_n = table[i][n->id];
+    for (auto m : n->neighbor) {
+      const int d_m = table[i][m->id];
+      if (d_n + 1 >= d_m) continue;
+      table[i][m->id] = d_n + 1;
+      OPEN[i].push(m);
+    }
+    if (n->id == v_id) return d_n;
+  }
+  return INT_MAX;
+}
+
+int DistTable::get(int i, Vertex* v) { return get(i, v->id); }
+
+int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
 {
   int c = 0;
   for (auto i = 0; i < ins.N; ++i) {
@@ -43,8 +54,7 @@ int get_makespan_lower_bound(const Instance& ins, const DistTable& dist_table)
   return c;
 }
 
-int get_sum_of_costs_lower_bound(const Instance& ins,
-                                 const DistTable& dist_table)
+int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table)
 {
   int c = 0;
   for (auto i = 0; i < ins.N; ++i) {

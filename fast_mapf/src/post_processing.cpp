@@ -79,7 +79,7 @@ int get_sum_of_costs(const Solution& solution)
 void print_stats(const int verbose, const Instance& ins,
                  const Solution& solution, const double comp_time_ms)
 {
-  const auto dist_table = DistTable(ins);
+  auto dist_table = DistTable(ins);
   const auto makespan = get_makespan(solution);
   const auto makespan_lb = get_makespan_lower_bound(ins, dist_table);
   const auto sum_of_costs = get_sum_of_costs(solution);
@@ -103,7 +103,7 @@ void make_log(const Instance& ins, const Solution& solution,
                                                         : map_name;
 
   // instance values
-  const auto dist_table = DistTable(ins);
+  auto dist_table = DistTable(ins);
 
   // log for visualizer
   auto get_x = [&](int k) { return k % ins.G.width; };

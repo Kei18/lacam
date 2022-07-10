@@ -32,7 +32,7 @@ struct Node {
   const std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
-  Node(Config _C, const DistTable& dist_table, std::string _id, Node* _parent);
+  Node(Config _C, DistTable& D, std::string _id, Node* _parent);
   ~Node();
 };
 using Nodes = std::vector<Node*>;
@@ -55,7 +55,7 @@ struct Planner {
   // solver utils
   const int N;  // number of agents
   const int V_size;
-  const DistTable D;
+  DistTable D;
   Candidates C_next;
   std::vector<float> tie_breakers;
   Agents A;
@@ -70,7 +70,7 @@ struct Planner {
 };
 
 std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
-std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
+std::vector<float> get_priorities(Config& C, DistTable& dist_table,
                                   Node* _parent);
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
