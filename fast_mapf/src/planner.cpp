@@ -10,7 +10,7 @@ std::string get_id(Config& C)
   return id;
 }
 
-std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
+std::vector<float> get_priorities(Config& C, DistTable& dist_table,
                                   Node* parent)
 {
   const auto N = C.size();
@@ -40,7 +40,7 @@ std::vector<int> get_order(Config& C, const std::vector<float>& priorities)
   return A;
 }
 
-Node::Node(Config _C, const DistTable& dist_table, std::string _id = "",
+Node::Node(Config _C, DistTable& dist_table, std::string _id = "",
            Node* _parent = nullptr)
     : C(_C),
       id(_id == "" ? get_id(_C) : _id),
@@ -130,7 +130,7 @@ Solution Planner::solve()
       auto i = S->order[M->depth];
       auto C = S->C[i]->neighbor;
       C.push_back(S->C[i]);
-      std::shuffle(C.begin(), C.end(), *MT);  // randomize
+      if (MT != nullptr) std::shuffle(C.begin(), C.end(), *MT);  // randomize
       for (auto u : C) S->search_tree.push(new Constraint(M, i, u));
     }
 
