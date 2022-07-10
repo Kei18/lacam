@@ -1,6 +1,9 @@
 #include "../include/graph.hpp"
 
-Vertex::Vertex(int _id) : id(_id), neighbor(Vertices()) {}
+Vertex::Vertex(int _id, int _index)
+    : id(_id), index(_index), neighbor(Vertices())
+{
+}
 
 Graph::Graph() : V(Vertices()), width(0), height(0) {}
 Graph::~Graph()
@@ -38,7 +41,7 @@ Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
     if (std::regex_match(line, results, r_map)) break;
   }
 
-  V = Vertices(width * height, nullptr);
+  U = Vertices(width * height, nullptr);
 
   // build vertices
   int y = 0;
@@ -48,8 +51,10 @@ Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
     for (int x = 0; x < width; ++x) {
       char s = line[x];
       if (s == 'T' or s == '@') continue;  // object
-      int id = width * y + x;
-      V[id] = new Vertex(id);
+      auto index = width * y + x;
+      auto v = new Vertex(V.size(), index);
+      V.push_back(v);
+      U[index] = v;
     }
     ++y;
   }
@@ -58,39 +63,30 @@ Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
   // create edges
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      auto v = V[width * y + x];
+      auto v = U[width * y + x];
       if (v == nullptr) continue;
       // left
       if (x > 0) {
-        auto u = V[width * y + (x - 1)];
+        auto u = U[width * y + (x - 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // right
       if (x < width - 1) {
-        auto u = V[width * y + (x + 1)];
+        auto u = U[width * y + (x + 1)];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // up
       if (y < height - 1) {
-        auto u = V[width * (y + 1) + x];
+        auto u = U[width * (y + 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
       // down
       if (y > 0) {
-        auto u = V[width * (y - 1) + x];
+        auto u = U[width * (y - 1) + x];
         if (u != nullptr) v->neighbor.push_back(u);
       }
     }
   }
-}
-
-int Graph::get_num_vertices() const
-{
-  int cnt = 0;
-  for (auto v : V) {
-    if (v != nullptr) ++cnt;
-  }
-  return cnt;
 }
 
 int Graph::size() const { return V.size(); }

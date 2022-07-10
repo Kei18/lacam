@@ -122,12 +122,12 @@ void make_log(const Instance& ins, const Solution& solution,
   if (log_short) return;
   log << "starts=";
   for (auto i = 0; i < ins.N; ++i) {
-    auto k = ins.starts[i]->id;
+    auto k = ins.starts[i]->index;
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\ngoals=";
   for (auto i = 0; i < ins.N; ++i) {
-    auto k = ins.goals[i]->id;
+    auto k = ins.goals[i]->index;
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\nsolution=\n";
@@ -135,7 +135,7 @@ void make_log(const Instance& ins, const Solution& solution,
     log << t << ":";
     auto C = solution[t];
     for (auto v : C) {
-      log << "(" << get_x(v->id) << "," << get_y(v->id) << "),";
+      log << "(" << get_x(v->index) << "," << get_y(v->index) << "),";
     }
     log << "\n";
   }

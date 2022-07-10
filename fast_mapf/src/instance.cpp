@@ -8,8 +8,8 @@ Instance::Instance(const std::string& map_filename,
       goals(Config()),
       N(start_indexes.size())
 {
-  for (auto k : start_indexes) starts.push_back(G.V[k]);
-  for (auto k : goal_indexes) goals.push_back(G.V[k]);
+  for (auto k : start_indexes) starts.push_back(G.U[k]);
+  for (auto k : goal_indexes) goals.push_back(G.U[k]);
 }
 
 static const std::regex r_instance =
@@ -39,8 +39,8 @@ Instance::Instance(const std::string& scen_filename,
       auto y_g = std::stoi(results[4].str());
       if (x_s < 0 || G.width <= x_s || x_g < 0 || G.width <= x_g) continue;
       if (y_s < 0 || G.height <= y_s || y_g < 0 || G.height <= y_g) continue;
-      auto s = G.V[G.width * y_s + x_s];
-      auto g = G.V[G.width * y_g + x_g];
+      auto s = G.U[G.width * y_s + x_s];
+      auto g = G.U[G.width * y_g + x_g];
       if (s == nullptr || g == nullptr) continue;
       starts.push_back(s);
       goals.push_back(g);
@@ -63,10 +63,7 @@ Instance::Instance(const std::string& map_filename, std::mt19937* MT,
   std::shuffle(s_indexes.begin(), s_indexes.end(), *MT);
   int i = 0;
   while (true) {
-    while (G.V[s_indexes[i]] == nullptr) {
-      ++i;
-      if (i >= K) return;
-    }
+    if (i >= K) return;
     starts.push_back(G.V[s_indexes[i]]);
     if (starts.size() == N) break;
     ++i;
@@ -78,10 +75,7 @@ Instance::Instance(const std::string& map_filename, std::mt19937* MT,
   std::shuffle(g_indexes.begin(), g_indexes.end(), *MT);
   int j = 0;
   while (true) {
-    while (G.V[g_indexes[j]] == nullptr) {
-      ++j;
-      if (j >= K) return;
-    }
+    if (j >= K) return;
     goals.push_back(G.V[g_indexes[j]]);
     if (goals.size() == N) break;
     ++j;
