@@ -19,6 +19,9 @@ int main(int argc, char* argv[])
   program.add_argument("-o", "--output")
       .help("output file")
       .default_value(std::string("./build/result.txt"));
+  program.add_argument("-l", "--log_short")
+      .default_value(false)
+      .implicit_value(true);
 
   try {
     program.parse_args(argc, argv);
@@ -36,9 +39,10 @@ int main(int argc, char* argv[])
   const auto seed = std::stoi(program.get<std::string>("seed"));
   const auto map_name = program.get<std::string>("map");
   const auto output_name = program.get<std::string>("output");
+  const auto log_short = program.get<bool>("log_short");
   const auto N = std::stoi(program.get<std::string>("num"));
   const auto ins = Instance(scen_name, map_name, N);
-  if (!ins.is_valid(verbose)) return 1;
+  if (!ins.is_valid(1)) return 1;
 
   // solve
   auto MT = std::mt19937(seed);
@@ -47,15 +51,16 @@ int main(int argc, char* argv[])
   const auto comp_time_ms = deadline.elapsed_ms();
 
   // failure
-  if (solution.empty()) {
-    info(1, verbose, "failed to solve");
-    return 0;
-  }
+  if (solution.empty()) info(1, verbose, "failed to solve");
+
   // check feasibility
-  if (!is_feasible_solution(ins, solution, verbose)) return 1;
+  if (!is_feasible_solution(ins, solution, verbose)) {
+    info(0, verbose, "invalid solution");
+    return 1;
+  }
 
   // post processing
   print_stats(verbose, ins, solution, comp_time_ms);
-  make_log(ins, solution, output_name, comp_time_ms, map_name);
+  make_log(ins, solution, output_name, comp_time_ms, map_name, log_short);
   return 0;
 }

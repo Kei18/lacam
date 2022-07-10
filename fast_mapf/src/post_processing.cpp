@@ -5,10 +5,7 @@
 bool is_feasible_solution(const Instance& ins, const Solution& solution,
                           const int verbose)
 {
-  if (solution.empty()) {
-    info(1, verbose, "empty solution");
-    return false;
-  }
+  if (solution.empty()) return true;
 
   // check start
   if (!is_same_config(solution.front(), ins.starts)) {
@@ -55,7 +52,11 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
   return true;
 }
 
-int get_makespan(const Solution& solution) { return solution.size() - 1; }
+int get_makespan(const Solution& solution)
+{
+  if (solution.empty()) return 0;
+  return solution.size() - 1;
+}
 
 int get_path_cost(const Solution& solution, int i)
 {
@@ -68,6 +69,7 @@ int get_path_cost(const Solution& solution, int i)
 
 int get_sum_of_costs(const Solution& solution)
 {
+  if (solution.empty()) return 0;
   int c = 0;
   const auto N = solution.front().size();
   for (auto i = 0; i < N; ++i) c += get_path_cost(solution, i);
@@ -92,7 +94,7 @@ static const std::regex r_map_name = std::regex(R"(.+/(.+))");
 
 void make_log(const Instance& ins, const Solution& solution,
               const std::string& output_name, const double comp_time_ms,
-              const std::string& map_name)
+              const std::string& map_name, const bool log_short)
 {
   // map name
   std::smatch results;
@@ -100,9 +102,12 @@ void make_log(const Instance& ins, const Solution& solution,
       (std::regex_match(map_name, results, r_map_name)) ? results[1].str()
                                                         : map_name;
 
+  // instance values
+  const auto dist_table = DistTable(ins);
+
   // log for visualizer
   auto get_x = [&](int k) { return k % ins.G.width; };
-  auto get_y = [&](int k) { return k / ins.G.height; };
+  auto get_y = [&](int k) { return k / ins.G.width; };
   std::ofstream log;
   log.open(output_name, std::ios::out);
   log << "agents=" << ins.N << "\n";
@@ -110,8 +115,11 @@ void make_log(const Instance& ins, const Solution& solution,
   log << "solver=planner\n";
   log << "solved=" << !solution.empty() << "\n";
   log << "soc=" << get_sum_of_costs(solution) << "\n";
+  log << "soc_lb=" << get_sum_of_costs_lower_bound(ins, dist_table) << "\n";
   log << "makespan=" << get_makespan(solution) << "\n";
+  log << "makespan_lb=" << get_makespan_lower_bound(ins, dist_table) << "\n";
   log << "comp_time=" << comp_time_ms << "\n";
+  if (log_short) return;
   log << "starts=";
   for (auto i = 0; i < ins.N; ++i) {
     auto k = ins.starts[i]->id;

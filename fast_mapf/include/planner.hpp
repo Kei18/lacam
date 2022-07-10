@@ -23,7 +23,6 @@ struct Constraint {
 
 struct Node {
   const Config C;
-  const float cost;
   const std::string id;
   Node* parent;
   const int depth;
@@ -37,6 +36,7 @@ struct Node {
   ~Node();
 };
 using Nodes = std::vector<Node*>;
+using Candidates = std::vector<std::array<Vertex*, 5> >;
 
 struct Agent {
   int id;
@@ -46,12 +46,32 @@ struct Agent {
 };
 using Agents = std::vector<Agent*>;
 
-float get_cost(Config& C, const DistTable& dist_table);
+struct Planner {
+  const Instance* ins;
+  const Deadline* deadline;
+  std::mt19937* MT;
+  const int verbose;
+
+  // solver utils
+  const int N;  // number of agents
+  const int V_size;
+  const DistTable D;
+  Candidates C_next;
+  std::vector<float> tie_breakers;
+  Agents A;
+  Agents occupied_now;
+  Agents occupied_next;
+
+  Planner(const Instance* _ins, const Deadline* _deadline, std::mt19937* _MT,
+          int _verbose = 0);
+  Solution solve();
+  bool set_new_config(Node* S, Constraint* M);
+  bool funcPIBT(Agent* ai, Agent* aj);
+};
+
 std::vector<int> get_order(Config& C, const std::vector<float>& priorities);
 std::vector<float> get_priorities(Config& C, const DistTable& dist_table,
                                   Node* _parent);
 std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);
-bool funcPIBT(Agent* ai, Agent* aj, Agents& occupied_now, Agents& occupied_next,
-              const DistTable& dist_table, std::mt19937* MT);

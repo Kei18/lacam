@@ -14,8 +14,32 @@ double Deadline::elapsed_ms() const
       .count();
 }
 
+double Deadline::elapsed_ns() const
+{
+  return std::chrono::duration_cast<std::chrono::nanoseconds>(Time::now() - t_s)
+      .count();
+}
+
+double elapsed_ms(const Deadline* deadline)
+{
+  if (deadline == nullptr) return 0;
+  return deadline->elapsed_ms();
+}
+
+double elapsed_ns(const Deadline* deadline)
+{
+  if (deadline == nullptr) return 0;
+  return deadline->elapsed_ns();
+}
+
 bool is_expired(const Deadline* deadline)
 {
   if (deadline == nullptr) return false;
   return deadline->elapsed_ms() > deadline->time_limit_ms;
+}
+
+float get_random_float(std::mt19937* MT, float from, float to)
+{
+  std::uniform_real_distribution<float> r(from, to);
+  return r(*MT);
 }

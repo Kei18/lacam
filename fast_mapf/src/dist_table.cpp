@@ -1,12 +1,23 @@
 #include "../include/dist_table.hpp"
 
 DistTable::DistTable(const Instance& ins)
-    : table(ins.N, std::vector<int>(size(ins.G.V), INT_MAX))
+    : table(ins.N, std::vector<int>(ins.G.V.size(), INT_MAX))
 {
-  for (int i = 0; i < ins.N; ++i) {
+  setup(&ins);
+}
+
+DistTable::DistTable(const Instance* ins)
+    : table(ins->N, std::vector<int>(ins->G.V.size(), INT_MAX))
+{
+  setup(ins);
+}
+
+void DistTable::setup(const Instance* ins)
+{
+  for (int i = 0; i < ins->N; ++i) {
     // breadth first search
     std::queue<Vertex*> OPEN;
-    auto n = ins.goals[i];
+    auto n = ins->goals[i];
     OPEN.push(n);
     table[i][n->id] = 0;
     while (!OPEN.empty()) {
