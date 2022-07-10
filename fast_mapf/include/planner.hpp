@@ -16,7 +16,6 @@ struct Constraint {
 
 struct Node {
   const Config C;
-  const std::string id;
   Node* parent;
   const int depth;
 
@@ -25,7 +24,7 @@ struct Node {
   std::vector<int> order;
   std::queue<Constraint*> search_tree;
 
-  Node(Config _C, DistTable& D, std::string _id = "", Node* _parent = nullptr);
+  Node(Config _C, DistTable& D, Node* _parent = nullptr);
   ~Node();
 };
 
@@ -63,6 +62,5 @@ struct Planner {
   bool funcPIBT(Agent* ai, Agent* aj = nullptr);
 };
 
-std::string get_id(Config& C);
 Solution solve(const Instance& ins, const int verbose = 0,
                const Deadline* deadline = nullptr, std::mt19937* MT = nullptr);

@@ -14,16 +14,8 @@ Constraint::Constraint(Constraint* parent, int i, Vertex* v)
 }
 Constraint::~Constraint(){};
 
-std::string get_id(Config& C)
-{
-  std::string id = "";
-  for (auto v : C) id += std::to_string(v->id) + "-";
-  return id;
-}
-
-Node::Node(Config _C, DistTable& D, std::string _id, Node* _parent)
+Node::Node(Config _C, DistTable& D, Node* _parent)
     : C(_C),
-      id(_id == "" ? get_id(_C) : _id),
       parent(_parent),
       depth(_parent == nullptr ? 0 : _parent->depth + 1),
       priorities(C.size(), 0),
@@ -88,13 +80,13 @@ Solution Planner::solve()
 
   // setup search queues
   std::stack<Node*> OPEN;
-  std::unordered_map<std::string, Node*> EXPLORED;
+  std::unordered_map<Config, Node*, ConfigHasher> EXPLORED;
   std::vector<Constraint*> GC;  // garbage collection for constraint
 
   // insert initial node
   auto S = new Node(ins->starts, D);
   OPEN.push(S);
-  EXPLORED[S->id] = S;
+  EXPLORED[S->C] = S;
 
   // best first search
   int loop_cnt = 0;
@@ -124,6 +116,7 @@ Solution Planner::solve()
     }
 
     // create successor for low-level search
+
     auto M = S->search_tree.front();
     GC.push_back(M);
     S->search_tree.pop();
@@ -143,17 +136,16 @@ Solution Planner::solve()
     for (auto a : A) C[a->id] = a->v_next;
 
     // check explored list
-    auto S_new_id = get_id(C);
-    auto iter = EXPLORED.find(S_new_id);
+    auto iter = EXPLORED.find(C);
     if (iter != EXPLORED.end()) {
       if (iter->second != S->parent) OPEN.push(iter->second);
       continue;
     }
 
     // insert new search node
-    auto S_new = new Node(C, D, S_new_id, S);
+    auto S_new = new Node(C, D, S);
     OPEN.push(S_new);
-    EXPLORED[S_new->id] = S_new;
+    EXPLORED[S_new->C] = S_new;
   }
 
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
@@ -242,7 +234,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     // avoid swap conflicts
     if (aj != nullptr && u == aj->v_now) continue;
 
-    auto ak = occupied_now[u->id];
+    auto& ak = occupied_now[u->id];
 
     // avoid swap confilicts with constraints
     if (ak != nullptr && ak->v_next == ai->v_now) continue;

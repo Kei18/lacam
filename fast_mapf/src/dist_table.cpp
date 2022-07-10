@@ -32,7 +32,7 @@ int DistTable::get(int i, int v_id)
     auto n = OPEN[i].front();
     OPEN[i].pop();
     const int d_n = table[i][n->id];
-    for (auto m : n->neighbor) {
+    for (auto& m : n->neighbor) {
       const int d_m = table[i][m->id];
       if (d_n + 1 >= d_m) continue;
       table[i][m->id] = d_n + 1;

@@ -8,7 +8,7 @@ Vertex::Vertex(int _id, int _index)
 Graph::Graph() : V(Vertices()), width(0), height(0) {}
 Graph::~Graph()
 {
-  for (auto v : V)
+  for (auto& v : V)
     if (v != nullptr) delete v;
   V.clear();
 }
@@ -98,4 +98,13 @@ bool is_same_config(const Config& C1, const Config& C2)
     if (C1[i]->id != C2[i]->id) return false;
   }
   return true;
+}
+
+int ConfigHasher::operator()(const Config& C) const
+{
+  int hash = C.size();
+  for (auto& v : C) {
+    hash ^= v->id + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+  }
+  return hash;
 }

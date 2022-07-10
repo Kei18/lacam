@@ -24,3 +24,7 @@ struct Graph {
 };
 
 bool is_same_config(const Config& C1, const Config& C2);
+
+struct ConfigHasher {
+  int operator()(const Config& C) const;
+};
