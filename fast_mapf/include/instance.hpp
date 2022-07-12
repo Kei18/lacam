@@ -8,7 +8,7 @@ struct Instance {
   const Graph G;
   Config starts;
   Config goals;
-  const int N;
+  const uint N;
 
   Instance(const std::string& map_filename,
            const std::vector<int>& start_indexes,
