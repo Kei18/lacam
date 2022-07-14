@@ -1,32 +1,41 @@
 import CSV
 import Dates
 import Base.Threads
+import YAML
 import Glob: glob
 include("summary.jl")
 
-function main(label = "test")
-    seeds = 5
-    time_limit_sec = 10
-
+function main(config_file)
+    config = YAML.load_file(config_file)
+    seeds = get(config, "seeds", 5)
+    time_limit_sec = get(config, "time_limit_sec", 10)
+    scen = get(config, "scen", "test")
+    num_interval_agents = get(config, "num_interval_agents", 10)
+    maps = get(config, "maps", Vector{String}())
+    all_scen = glob("assets/scen/scen-$(scen)/*.scen")
     date_str = replace(string(Dates.now()), ":" => "-")
     root_dir = joinpath(@__DIR__, "..", "..", "data", "exp", date_str)
     !isdir(root_dir) && mkpath(root_dir)
-    all_scen = glob("assets/scen/scen-$(label)/*.scen")
-    all_scen_num = length(all_scen)
+    additional_info = Dict(
+        "git_hash" => read(`git log -1 --pretty=format:"%H"`, String),
+        "date" => date_str,
+    )
+    YAML.write_file(joinpath(root_dir, "config.yaml"), merge(config, additional_info))
 
-    for (l, scen_file) in enumerate(all_scen)
+    l = 0
+    for scen_file in all_scen
         lines = readlines(scen_file)
         N_max = length(lines) - 1
-        map_file = joinpath(
-            "assets/map/mapf-map",
-            match(r"\d+\t(.+).map\t(.+)", lines[2])[1]*".map"
-        )
+        map_name_raw = match(r"\d+\t(.+).map\t(.+)", lines[2])[1]
+        !(map_name_raw in maps) && continue
+        l += 1
+        map_file = "assets/map/mapf-map/$(map_name_raw).map"
         cnt_fin = Threads.Atomic{Int}(0)
-        loops = collect(enumerate(Iterators.product(2:N_max, 1:seeds)))
-        num_total_tasks = (N_max - 1) * seeds
+        loops = collect(enumerate(Iterators.product(10:num_interval_agents:N_max, 1:seeds)))
+        num_total_tasks = length(loops)
         result = Vector{Any}(undef, num_total_tasks)
         scen_short = first(split(last(split(scen_file, "/")), "."))
-        println("$(l)/$(all_scen_num)\t$(scen_short)")
+        println("$(l)/$(length(maps)*25)\t$(scen_short)")
 
         # solve
         Threads.@threads for (k, (N, seed)) in loops
@@ -34,7 +43,13 @@ function main(label = "test")
             run(`build/main -m $map_file -i $scen_file -N $N -o $output_file -t $time_limit_sec -s $seed -l`)
             Threads.atomic_add!(cnt_fin, 1)
             print("\r$(cnt_fin[])/$(num_total_tasks) tasks have been finished")
-            row = Dict(:N => N, :map_name => last(split(map_file, "/")), :scen => scen_short)
+            row = Dict(
+                :solver => "Lacam",
+                :num_agents => N,
+                :map_name => last(split(map_file, "/")),
+                :scen => scen_short,
+                :scen_num => last(split(scen_short, "-")),
+            )
             for line in readlines(output_file)
                 m = match(r"soc=(\d+)", line)
                 !isnothing(m) && (row[:soc] = parse(Int, m[1]))
@@ -60,6 +75,6 @@ function main(label = "test")
         CSV.write(result_file, result)
         println()
         print_summary(result_file)
-        l != all_scen_num && println()
+        l != length(maps) && println()
     end
 end
