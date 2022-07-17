@@ -1,0 +1,18 @@
+num_min_agents: 100
+num_interval_agents: 50
+time_limit_sec: 30
+seeds: 5
+scen: random
+maps:
+  - room-32-32-4
+  - room-64-64-8
+  - room-64-64-16
+  - random-32-32-20
+  - random-64-64-20
+  - maze-32-32-2
+  - warehouse-20-40- 10-2-1
+  - warehouse-20-40- 10-2-2
+  - ost003d
+  - lt_gallowstemplar_n
+  - brc202d
+  - orz900d

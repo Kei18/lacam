@@ -25,7 +25,7 @@ Node::Node(Config _C, DistTable& D, Node* _parent)
   // set priorities
   if (parent == nullptr) {
     // initialize
-    for (auto i = 0; i < N; ++i) priorities[i] = D.get(i, C[i]) / N;
+    for (auto i = 0; i < N; ++i) priorities[i] = (float)D.get(i, C[i]) / N;
   } else {
     // dynamic priorities from PIBT
     for (auto i = 0; i < N; ++i) {
