@@ -27,7 +27,7 @@ function main(config_file)
     for scen_file in all_scen
         lines = readlines(scen_file)
         N_max = length(lines) - 1
-        map_name_raw = match(r"\d+\t(.+).map\t(.+)", lines[2])[1]
+        map_name_raw = last(split(match(r"\d+\t(.+).map\t(.+)", lines[2])[1], "/"))
         !(map_name_raw in maps) && continue
         l += 1
         map_file = "assets/map/mapf-map/$(map_name_raw).map"
