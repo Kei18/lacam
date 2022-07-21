@@ -1,4 +1,4 @@
-num_min_agents: 100
+num_min_agents: 50
 num_interval_agents: 50
 time_limit_sec: 30
 seeds: 5
