@@ -135,7 +135,7 @@ Solution Planner::solve()
     // check explored list
     auto iter = EXPLORED.find(C);
     if (iter != EXPLORED.end()) {
-      if (iter->second != S->parent) OPEN.push(iter->second);
+      OPEN.push(iter->second);
       continue;
     }
 
