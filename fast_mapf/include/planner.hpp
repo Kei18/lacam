@@ -59,7 +59,7 @@ struct Planner {
           int _verbose = 0);
   Solution solve();
   bool set_new_config(Node* S, Constraint* M);
-  bool funcPIBT(Agent* ai, Agent* aj = nullptr);
+  bool funcGreedy(Agent* ai);
 };
 
 Solution solve(const Instance& ins, const int verbose = 0,

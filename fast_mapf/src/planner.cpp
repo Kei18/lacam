@@ -135,7 +135,7 @@ Solution Planner::solve()
     // check explored list
     auto iter = EXPLORED.find(C);
     if (iter != EXPLORED.end()) {
-      if (iter->second != S->parent) OPEN.push(iter->second);
+      OPEN.push(iter->second);
       continue;
     }
 
@@ -195,12 +195,12 @@ bool Planner::set_new_config(Node* S, Constraint* M)
   // add usual PIBT
   for (auto k : S->order) {
     auto a = A[k];
-    if (a->v_next == nullptr && !funcPIBT(a)) return false;
+    if (a->v_next == nullptr && !funcGreedy(a)) return false;
   }
   return true;
 }
 
-bool Planner::funcPIBT(Agent* ai, Agent* aj)
+bool Planner::funcGreedy(Agent* ai)
 {
   const auto i = ai->id;
   const auto K = ai->v_now->neighbor.size();
@@ -225,8 +225,6 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
 
     // avoid vertex conflicts
     if (occupied_next[u->id] != nullptr) continue;
-    // avoid swap conflicts
-    if (aj != nullptr && u == aj->v_now) continue;
 
     auto& ak = occupied_now[u->id];
 
@@ -237,19 +235,8 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     occupied_next[u->id] = ai;
     ai->v_next = u;
 
-    // empty or stay
-    if (ak == nullptr || u == ai->v_now) return true;
-
-    // priority inheritance
-    if (ak->v_next == nullptr && !funcPIBT(ak, ai)) continue;
-
-    // success to plan next one step
     return true;
   }
-
-  // failed to secure node
-  occupied_next[ai->v_now->id] = ai;
-  ai->v_next = ai->v_now;
   return false;
 }
 
