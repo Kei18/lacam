@@ -133,11 +133,7 @@ Solution Planner::solve()
     for (auto a : A) C[a->id] = a->v_next;
 
     // check explored list
-    auto iter = EXPLORED.find(C);
-    if (iter != EXPLORED.end()) {
-      if (iter->second != S->parent) OPEN.push(iter->second);
-      continue;
-    }
+    if (EXPLORED.find(C) != EXPLORED.end()) continue;
 
     // insert new search node
     auto S_new = new Node(C, D, S);
