@@ -107,6 +107,7 @@ julia --project=. --threads=auto
 ## Notes
 
 - The grid maps and scenarios in `assets/` are from [MAPF benchmarks](https://movingai.com/benchmarks/mapf.html).
+- `scen-warehouse.zip` is obtained from [MAPF-LNS2](https://github.com/Jiaoyang-Li/MAPF-LNS2).
 - The evaluation script is inspired by [Hydra](https://hydra.cc/).
 - The experiment of design choices is not included. Those are in different branches.
 - The repo was developed on macOS-10.15.
