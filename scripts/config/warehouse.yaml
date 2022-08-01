@@ -1,3 +1,4 @@
+# instances with massive agents
 num_min_agents: 2000
 num_interval_agents: 2000
 time_limit_sec: 1000

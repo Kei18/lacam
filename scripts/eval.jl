@@ -1,11 +1,37 @@
+# experimental scripts for the MAPF benchmark
+
 import CSV
 import Dates
 import Base.Threads
 import YAML
 import Glob: glob
-include("summary.jl")
+using DataFrames
+using Query
+import Statistics: mean, median
+
+function print_summary(csv_filename::String)
+    df = CSV.File(csv_filename) |> DataFrame
+    num_total = df |> @count()
+    num_solved = df |> @filter(_.solved == 1) |> @count()
+    if num_solved == 0
+        println("solved\t$(num_solved)/$(num_total)=$(num_solved/num_total)")
+        return
+    end
+    comp_time = df |> @filter(_.solved == 1) |> @map(_.comp_time) |> collect
+    soc = df |> @filter(_.solved == 1) |> @map(_.soc / _.soc_lb) |> collect
+    makespan = df |> @filter(_.solved == 1) |> @map(_.makespan / _.makespan_lb) |> collect
+    r = (x) -> round(x,digits=3)
+    describe = (x) -> "max=$(r(maximum(x)))\tmean=$(r(mean(x)))\tmed=$(r(median(x)))"
+    println(
+        "solved\t$(num_solved)/$(num_total)=$(num_solved/num_total)" *
+            "\ncomp_time(ms)\t$(describe(comp_time))" *
+            "\nsum_of_costs/lb\t$(describe(soc))" *
+            "\nmakespan/lb\t$(describe(makespan))"
+    )
+end
 
 function main(config_file)
+    # load experimental setting
     config = YAML.load_file(config_file)
     seeds = get(config, "seeds", 5)
     time_limit_sec = get(config, "time_limit_sec", 10)
@@ -30,7 +56,7 @@ function main(config_file)
         map_name_raw = last(split(match(r"\d+\t(.+).map\t(.+)", lines[2])[1], "/"))
         !(map_name_raw in maps) && continue
         l += 1
-        map_file = "assets/map/mapf-map/$(map_name_raw).map"
+        map_file = "assets/map/$(map_name_raw).map"
         cnt_fin = Threads.Atomic{Int}(0)
         loops = collect(enumerate(Iterators.product(num_min_agents:num_interval_agents:N_max, 1:seeds)))
         num_total_tasks = length(loops)
@@ -38,7 +64,7 @@ function main(config_file)
         scen_short = first(split(last(split(scen_file, "/")), "."))
         println("$(l)/$(length(maps)*25)\t$(scen_short)")
 
-        # solve
+        # solve, with multi-threading
         Threads.@threads for (k, (N, seed)) in loops
             output_file = "build/result-$(k).txt"
             run(`build/main -m $map_file -i $scen_file -N $N -o $output_file -t $time_limit_sec -s $seed -l`)

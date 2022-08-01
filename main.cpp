@@ -1,9 +1,10 @@
 #include <argparse/argparse.hpp>
-#include <fast_mapf.hpp>
+#include <lacam.hpp>
 
 int main(int argc, char* argv[])
 {
-  argparse::ArgumentParser program("fast_mapf", "0.1.0");
+  // arguments parser
+  argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();
   program.add_argument("-i", "--scen")
       .help("scenario file")
@@ -33,7 +34,7 @@ int main(int argc, char* argv[])
     std::exit(1);
   }
 
-  // read instance
+  // setup instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
   const auto time_limit_sec =
       std::stoi(program.get<std::string>("time_limit_sec"));
@@ -44,8 +45,6 @@ int main(int argc, char* argv[])
   const auto output_name = program.get<std::string>("output");
   const auto log_short = program.get<bool>("log_short");
   const auto N = std::stoi(program.get<std::string>("num"));
-
-  // setup instance
   const auto ins = scen_name.size() > 0 ? Instance(scen_name, map_name, N)
                                         : Instance(map_name, &MT, N);
   if (!ins.is_valid(1)) return 1;
