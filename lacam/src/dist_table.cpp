@@ -1,7 +1,5 @@
 #include "../include/dist_table.hpp"
 
-#include <climits>
-
 DistTable::DistTable(const Instance& ins)
     : K(ins.G.V.size()), table(ins.N, std::vector<int>(K, K))
 {
@@ -28,6 +26,12 @@ int DistTable::get(int i, int v_id)
 {
   if (table[i][v_id] < K) return table[i][v_id];
 
+  /*
+   * BFS with lazy evaluation
+   * c.f., Reverse Resumable A*
+   * https://www.aaai.org/Papers/AIIDE/2005/AIIDE05-020.pdf
+   */
+
   while (!OPEN[i].empty()) {
     auto n = OPEN[i].front();
     OPEN[i].pop();
@@ -44,21 +48,3 @@ int DistTable::get(int i, int v_id)
 }
 
 int DistTable::get(int i, Vertex* v) { return get(i, v->id); }
-
-int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
-{
-  int c = 0;
-  for (auto i = 0; i < ins.N; ++i) {
-    c = std::max(c, dist_table.get(i, ins.starts[i]));
-  }
-  return c;
-}
-
-int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table)
-{
-  int c = 0;
-  for (auto i = 0; i < ins.N; ++i) {
-    c += dist_table.get(i, ins.starts[i]);
-  }
-  return c;
-}

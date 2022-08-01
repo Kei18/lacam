@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 file(GLOB SRCS "./src/*.cpp")
-project(fast_mapf)
+project(lacam)
 add_library(${PROJECT_NAME} STATIC ${SRCS})
 target_compile_options(${PROJECT_NAME} PUBLIC -O3 -Wall -mtune=native -march=native)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

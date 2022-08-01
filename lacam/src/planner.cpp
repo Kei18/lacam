@@ -3,12 +3,14 @@
 Constraint::Constraint() : who(std::vector<int>()), where(Vertices()), depth(0)
 {
 }
+
 Constraint::Constraint(Constraint* parent, int i, Vertex* v)
     : who(parent->who), where(parent->where), depth(parent->depth + 1)
 {
   who.push_back(i);
   where.push_back(v);
 }
+
 Constraint::~Constraint(){};
 
 Node::Node(Config _C, DistTable& D, Node* _parent)
@@ -27,7 +29,7 @@ Node::Node(Config _C, DistTable& D, Node* _parent)
     // initialize
     for (auto i = 0; i < N; ++i) priorities[i] = (float)D.get(i, C[i]) / N;
   } else {
-    // dynamic priorities from PIBT
+    // dynamic priorities, akin to PIBT
     for (auto i = 0; i < N; ++i) {
       if (D.get(i, C[i]) != 0) {
         priorities[i] = parent->priorities[i] + 1;
@@ -77,13 +79,13 @@ Solution Planner::solve()
 
   // setup search queues
   std::stack<Node*> OPEN;
-  std::unordered_map<Config, Node*, ConfigHasher> EXPLORED;
-  std::vector<Constraint*> GC;  // garbage collection for constraint
+  std::unordered_map<Config, Node*, ConfigHasher> CLOSED;
+  std::vector<Constraint*> GC;  // garbage collection of constraints
 
   // insert initial node
   auto S = new Node(ins->starts, D);
   OPEN.push(S);
-  EXPLORED[S->C] = S;
+  CLOSED[S->C] = S;
 
   // best first search
   int loop_cnt = 0;
@@ -106,14 +108,13 @@ Solution Planner::solve()
       break;
     }
 
-    // search end
+    // low-level search end
     if (S->search_tree.empty()) {
       OPEN.pop();
       continue;
     }
 
-    // create successor for low-level search
-
+    // create successors at the low-level search
     auto M = S->search_tree.front();
     GC.push_back(M);
     S->search_tree.pop();
@@ -125,16 +126,16 @@ Solution Planner::solve()
       for (auto u : C) S->search_tree.push(new Constraint(M, i, u));
     }
 
-    // create successor for high-level search by PIBT
-    if (!set_new_config(S, M)) continue;
+    // create successors at the high-level search
+    if (!get_new_config(S, M)) continue;
 
     // create new configuration
     auto C = Config(N, nullptr);
     for (auto a : A) C[a->id] = a->v_next;
 
     // check explored list
-    auto iter = EXPLORED.find(C);
-    if (iter != EXPLORED.end()) {
+    auto iter = CLOSED.find(C);
+    if (iter != CLOSED.end()) {
       OPEN.push(iter->second);
       continue;
     }
@@ -142,23 +143,23 @@ Solution Planner::solve()
     // insert new search node
     auto S_new = new Node(C, D, S);
     OPEN.push(S_new);
-    EXPLORED[S_new->C] = S_new;
+    CLOSED[S_new->C] = S_new;
   }
 
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
        solution.empty() ? "failed" : "solution found", "\texpanded:", loop_cnt,
-       "\texplored:", EXPLORED.size());
+       "\texplored:", CLOSED.size());
   // memory management
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
-  for (auto p : EXPLORED) delete p.second;
+  for (auto p : CLOSED) delete p.second;
 
   return solution;
 }
 
-bool Planner::set_new_config(Node* S, Constraint* M)
+bool Planner::get_new_config(Node* S, Constraint* M)
 {
-  // setup occupied_now
+  // setup cache
   for (auto a : A) {
     // clear previous cache
     if (a->v_now != nullptr && occupied_now[a->v_now->id] == a) {
@@ -192,10 +193,10 @@ bool Planner::set_new_config(Node* S, Constraint* M)
     occupied_next[l] = A[i];
   }
 
-  // add usual PIBT
+  // perform PIBT
   for (auto k : S->order) {
     auto a = A[k];
-    if (a->v_next == nullptr && !funcPIBT(a)) return false;
+    if (a->v_next == nullptr && !funcPIBT(a)) return false;  // planning failure
   }
   return true;
 }
@@ -205,11 +206,12 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
   const auto i = ai->id;
   const auto K = ai->v_now->neighbor.size();
 
-  // get candidates
+  // get candidates for next locations
   for (auto k = 0; k < K; ++k) {
     auto u = ai->v_now->neighbor[k];
     C_next[i][k] = u;
-    if (MT != nullptr) tie_breakers[u->id] = get_random_float(MT);
+    if (MT != nullptr)
+      tie_breakers[u->id] = get_random_float(MT);  // set tie-breaker
   }
   C_next[i][K] = ai->v_now;
 
@@ -233,7 +235,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     // avoid swap confilicts with constraints
     if (ak != nullptr && ak->v_next == ai->v_now) continue;
 
-    // reserve
+    // reserve next location
     occupied_next[u->id] = ai;
     ai->v_next = u;
 

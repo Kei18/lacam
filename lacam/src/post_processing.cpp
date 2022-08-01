@@ -7,13 +7,13 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
 {
   if (solution.empty()) return true;
 
-  // check start
+  // check start locations
   if (!is_same_config(solution.front(), ins.starts)) {
     info(1, verbose, "invalid starts");
     return false;
   }
 
-  // check goal
+  // check goal locations
   if (!is_same_config(solution.back(), ins.goals)) {
     info(1, verbose, "invalid goals");
     return false;
@@ -76,6 +76,24 @@ int get_sum_of_costs(const Solution& solution)
   return c;
 }
 
+int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
+{
+  int c = 0;
+  for (auto i = 0; i < ins.N; ++i) {
+    c = std::max(c, dist_table.get(i, ins.starts[i]));
+  }
+  return c;
+}
+
+int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table)
+{
+  int c = 0;
+  for (auto i = 0; i < ins.N; ++i) {
+    c += dist_table.get(i, ins.starts[i]);
+  }
+  return c;
+}
+
 void print_stats(const int verbose, const Instance& ins,
                  const Solution& solution, const double comp_time_ms)
 {
@@ -90,6 +108,7 @@ void print_stats(const int verbose, const Instance& ins,
        ", sub-opt-ub=", (double)sum_of_costs / sum_of_costs_lb, ")");
 }
 
+// for log of map_name
 static const std::regex r_map_name = std::regex(R"(.+/(.+))");
 
 void make_log(const Instance& ins, const Solution& solution,
@@ -102,7 +121,7 @@ void make_log(const Instance& ins, const Solution& solution,
       (std::regex_match(map_name, results, r_map_name)) ? results[1].str()
                                                         : map_name;
 
-  // instance values
+  // for instance-specific values
   auto dist_table = DistTable(ins);
 
   // log for visualizer

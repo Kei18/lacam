@@ -1,7 +1,8 @@
+# for MAPF benchmark
 num_min_agents: 50
 num_interval_agents: 50
 time_limit_sec: 30
-seeds: 5
+seeds: 5  # the number of iterations
 scen: random
 maps:
   - room-32-32-4

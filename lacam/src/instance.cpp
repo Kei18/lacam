@@ -12,6 +12,7 @@ Instance::Instance(const std::string& map_filename,
   for (auto k : goal_indexes) goals.push_back(G.U[k]);
 }
 
+// for load instance
 static const std::regex r_instance =
     std::regex(R"(\d+\t.+\.map\t\d+\t\d+\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t.+)");
 
@@ -19,7 +20,7 @@ Instance::Instance(const std::string& scen_filename,
                    const std::string& map_filename, const int _N)
     : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N)
 {
-  // load start-goal
+  // load start-goal pairs
   std::ifstream file(scen_filename);
   if (!file) {
     info(0, 0, scen_filename, " is not found");

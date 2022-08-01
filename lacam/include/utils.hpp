@@ -1,7 +1,11 @@
+/*
+ * utility functions
+ */
 #pragma once
 
 #include <array>
 #include <chrono>
+#include <climits>
 #include <fstream>
 #include <iostream>
 #include <numeric>
@@ -28,6 +32,7 @@ void info(const int level, const int verbose, Head&& head, Tail&&... tail)
   info(level, verbose, std::forward<Tail>(tail)...);
 }
 
+// time manager
 struct Deadline {
   const Time::time_point t_s;
   const double time_limit_ms;

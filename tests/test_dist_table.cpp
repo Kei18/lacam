@@ -1,5 +1,4 @@
-#include <fast_mapf.hpp>
-#include <iostream>
+#include <lacam.hpp>
 
 #include "gtest/gtest.h"
 
