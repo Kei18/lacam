@@ -3,7 +3,7 @@ RUN apt-get -y update
 RUN apt-get -y install wget libssl-dev build-essential
 
 # update g++ version
-RUN apt-get -y software-properties-common
+RUN apt-get -y install software-properties-common
 RUN add-apt-repository ppa:ubuntu-toolchain-r/test
 RUN apt-get -y install g++-8
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 80
