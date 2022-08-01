@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(fast-mapf CXX)
+project(lacam-project CXX)
 
 add_subdirectory(./lacam)
 add_subdirectory(./third_party/argparse)

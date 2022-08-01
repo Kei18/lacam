@@ -56,7 +56,7 @@ function main(config_file)
         map_name_raw = last(split(match(r"\d+\t(.+).map\t(.+)", lines[2])[1], "/"))
         !(map_name_raw in maps) && continue
         l += 1
-        map_file = "assets/map/mapf-map/$(map_name_raw).map"
+        map_file = "assets/map/$(map_name_raw).map"
         cnt_fin = Threads.Atomic{Int}(0)
         loops = collect(enumerate(Iterators.product(num_min_agents:num_interval_agents:N_max, 1:seeds)))
         num_total_tasks = length(loops)

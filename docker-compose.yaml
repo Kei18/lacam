@@ -1,0 +1,11 @@
+version: "3"
+
+services:
+  dev:
+    build: .
+    image: lacam-minimum-env
+    container_name: lacam-playground
+    volumes:
+      - $PWD:/workspace
+    tty: true
+    stdin_open: true

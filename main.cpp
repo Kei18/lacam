@@ -4,7 +4,7 @@
 int main(int argc, char* argv[])
 {
   // arguments parser
-  argparse::ArgumentParser program("fast_mapf", "0.1.0");
+  argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();
   program.add_argument("-i", "--scen")
       .help("scenario file")
