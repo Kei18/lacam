@@ -11,9 +11,9 @@ All you need is [CMake](https://cmake.org/) (≥v3.16). The code is written in C
 First, clone the submodules.
 
 ```sh
-git init
-git submodule update --init --recursive
+git clone https://github.com/p-ranav/argparse.git third_party/argparse
 ```
+
 Then, build the project.
 
 ```sh
@@ -111,7 +111,6 @@ julia --project=. --threads=auto
 - The evaluation script is inspired by [Hydra](https://hydra.cc/).
 - The experiment of design choices is not included. Those are in different branches.
 - The repo was developed on macOS-10.15.
-- `tests/` is not comprehensive. It was used in early developments.
 
 ## Licence
 
