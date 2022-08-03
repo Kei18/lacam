@@ -1,7 +1,6 @@
 lacam
 ---
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
-[![CI](https://github.com/Kei18/lacam/actions/workflows/ci.yml/badge.svg)](https://github.com/Kei18/fast-mapf/actions/workflows/ci.yml)
 
 The code repository of the paper "LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding."
 
@@ -9,11 +8,11 @@ The code repository of the paper "LaCAM: Search-Based Algorithm for Quick Multi-
 
 All you need is [CMake](https://cmake.org/) (≥v3.16). The code is written in C++(17).
 
-First, clone this repo with submodules.
+First, clone the submodules.
 
 ```sh
-git clone --recursive https://github.com/Kei18/lacam.git
-cd lacam
+git init
+git submodule update --init --recursive
 ```
 Then, build the project.
 
@@ -67,6 +66,7 @@ solution=
 </details>
 
 You can find details of all parameters with:
+
 ```sh
 build/main --help
 ```
@@ -112,17 +112,7 @@ julia --project=. --threads=auto
 - The experiment of design choices is not included. Those are in different branches.
 - The repo was developed on macOS-10.15.
 - `tests/` is not comprehensive. It was used in early developments.
-- Auto formatting (clang-format) when committing:
-
-```sh
-git config core.hooksPath .githooks
-chmod a+x .githooks/pre-commit
-```
 
 ## Licence
 
-This software is released under the MIT License, see [LICENSE.txt](LICENCE.txt).
-
-## Author
-
-[Keisuke Okumura](https://kei18.github.io) is a Ph.D. student at Tokyo Institute of Technology, interested in controlling multiple moving agents.
+This software will be released under the MIT License.
