@@ -44,7 +44,6 @@ function main(config_file)
     root_dir = joinpath(@__DIR__, "..", "..", "data", "exp", date_str)
     !isdir(root_dir) && mkpath(root_dir)
     additional_info = Dict(
-        "git_hash" => read(`git log -1 --pretty=format:"%H"`, String),
         "date" => date_str,
     )
     YAML.write_file(joinpath(root_dir, "config.yaml"), merge(config, additional_info))
