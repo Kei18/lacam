@@ -136,7 +136,7 @@ Solution Planner::solve()
     // check explored list
     auto iter = CLOSED.find(C);
     if (iter != CLOSED.end()) {
-      OPEN.push(iter->second);
+      OPEN.push(iter->second);  // In DFS, this part is removed
       continue;
     }
 
@@ -238,6 +238,8 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     // reserve next location
     occupied_next[u->id] = ai;
     ai->v_next = u;
+
+    // In GREEDY, `return true' here
 
     // empty or stay
     if (ak == nullptr || u == ai->v_now) return true;
