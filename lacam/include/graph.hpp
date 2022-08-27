@@ -34,5 +34,5 @@ bool is_same_config(
 // c.f.
 // https://stackoverflow.com/questions/10405030/c-unordered-map-fail-when-used-with-a-vector-as-key
 struct ConfigHasher {
-  int operator()(const Config& C) const;
+  uint operator()(const Config& C) const;
 };

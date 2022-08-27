@@ -101,9 +101,9 @@ bool is_same_config(const Config& C1, const Config& C2)
   return true;
 }
 
-int ConfigHasher::operator()(const Config& C) const
+uint ConfigHasher::operator()(const Config& C) const
 {
-  int hash = C.size();
+  uint hash = C.size();
   for (auto& v : C) {
     hash ^= v->id + 0x9e3779b9 + (hash << 6) + (hash >> 2);
   }
