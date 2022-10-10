@@ -35,7 +35,7 @@ docker compose exec dev bash
 ## Usage
 
 ```sh
-build/main -i assets/scen/random-32-32-20-random-1.scen -m assets/map/random-32-32-20.map -N 50 -v 1
+build/main -i assets/random-32-32-10-random-1.scen -m assets/random-32-32-10.map -N 50 -v 1
 ```
 The result will be saved in `build/result.txt`.
 

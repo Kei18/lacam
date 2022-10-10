@@ -76,6 +76,21 @@ int get_sum_of_costs(const Solution& solution)
   return c;
 }
 
+int get_sum_of_loss(const Solution& solution)
+{
+  if (solution.empty()) return 0;
+  int c = 0;
+  const auto N = solution.front().size();
+  const auto T = solution.size();
+  for (size_t i = 0; i < N; ++i) {
+    auto g = solution.back()[i];
+    for (size_t t = 1; t < T; ++t) {
+      if (solution[t - 1][i] != g || solution[t][i] != g) ++c;
+    }
+  }
+  return c;
+}
+
 int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
 {
   int c = 0;
@@ -97,15 +112,19 @@ int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table)
 void print_stats(const int verbose, const Instance& ins,
                  const Solution& solution, const double comp_time_ms)
 {
+  auto ceil = [](float x) { return std::ceil(x * 100) / 100; };
   auto dist_table = DistTable(ins);
   const auto makespan = get_makespan(solution);
   const auto makespan_lb = get_makespan_lower_bound(ins, dist_table);
   const auto sum_of_costs = get_sum_of_costs(solution);
   const auto sum_of_costs_lb = get_sum_of_costs_lower_bound(ins, dist_table);
+  const auto sum_of_loss = get_sum_of_loss(solution);
   info(1, verbose, "solved: ", comp_time_ms, "ms", "\tmakespan: ", makespan,
-       " (lb=", makespan_lb, ", sub-opt-ub=", (double)makespan / makespan_lb,
-       ")", "\tsum_of_costs: ", sum_of_costs, " (lb=", sum_of_costs_lb,
-       ", sub-opt-ub=", (double)sum_of_costs / sum_of_costs_lb, ")");
+       " (lb=", makespan_lb, ", ub=", ceil((float)makespan / makespan_lb), ")",
+       "\tsum_of_costs: ", sum_of_costs, " (lb=", sum_of_costs_lb,
+       ", ub=", ceil((float)sum_of_costs / sum_of_costs_lb), ")",
+       "\tsum_of_loss: ", sum_of_loss, " (lb=", sum_of_costs_lb,
+       ", ub=", ceil((float)sum_of_loss / sum_of_costs_lb), ")");
 }
 
 // for log of map_name
@@ -137,21 +156,24 @@ void make_log(const Instance& ins, const Solution& solution,
   log << "soc_lb=" << get_sum_of_costs_lower_bound(ins, dist_table) << "\n";
   log << "makespan=" << get_makespan(solution) << "\n";
   log << "makespan_lb=" << get_makespan_lower_bound(ins, dist_table) << "\n";
+  log << "sum_of_loss=" << get_sum_of_loss(solution) << "\n";
+  log << "sum_of_loss_lb=" << get_sum_of_costs_lower_bound(ins, dist_table)
+      << "\n";
   log << "comp_time=" << comp_time_ms << "\n";
   log << "seed=" << seed << "\n";
   if (log_short) return;
   log << "starts=";
-  for (auto i = 0; i < ins.N; ++i) {
+  for (size_t i = 0; i < ins.N; ++i) {
     auto k = ins.starts[i]->index;
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\ngoals=";
-  for (auto i = 0; i < ins.N; ++i) {
+  for (size_t i = 0; i < ins.N; ++i) {
     auto k = ins.goals[i]->index;
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\nsolution=\n";
-  for (auto t = 0; t < solution.size(); ++t) {
+  for (size_t t = 0; t < solution.size(); ++t) {
     log << t << ":";
     auto C = solution[t];
     for (auto v : C) {
