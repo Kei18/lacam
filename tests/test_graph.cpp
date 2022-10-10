@@ -4,7 +4,7 @@
 
 TEST(Graph, load_graph)
 {
-  const std::string filename = "./assets/map/random-32-32-10.map";
+  const std::string filename = "./assets/random-32-32-10.map";
   auto G = Graph(filename);
   ASSERT_EQ(G.size(), 922);
   ASSERT_EQ(G.V[0]->neighbor.size(), 2);

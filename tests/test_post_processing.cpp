@@ -4,7 +4,7 @@
 
 TEST(PostProcesing, validate)
 {
-  const auto map_filename = "./assets/map/empty-8-8.map";
+  const auto map_filename = "./assets/empty-8-8.map";
   const auto start_indexes = std::vector<int>({0, 8});
   const auto goal_indexes = std::vector<int>({9, 1});
   const auto ins = Instance(map_filename, start_indexes, goal_indexes);
@@ -50,7 +50,7 @@ TEST(PostProcesing, validate)
 
 TEST(PostProcessing, metrics)
 {
-  const auto map_filename = "./assets/map/empty-8-8.map";
+  const auto map_filename = "./assets/empty-8-8.map";
   const auto start_indexes = std::vector<int>({0, 5, 10});
   const auto goal_indexes = std::vector<int>({2, 4, 11});
   const auto ins = Instance(map_filename, start_indexes, goal_indexes);
