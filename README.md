@@ -3,7 +3,7 @@ lacam
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
 [![CI](https://github.com/Kei18/lacam/actions/workflows/ci.yml/badge.svg)](https://github.com/Kei18/fast-mapf/actions/workflows/ci.yml)
 
-The code repository of the paper "LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding."
+The code repository of the paper ["LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding"](https://kei18.github.io/lacam).
 
 ## Building
 
@@ -41,26 +41,29 @@ The result will be saved in `build/result.txt`.
 
 <details><summary>Output File</summary>
 
-This is an example output of `random-32-32-20-random-1.scen`.
+This is an example output of `random-32-32-10-random-1.scen`.
 `(x, y)` denotes location.
 `(0, 0)` is the left-top point.
 `(x, 0)` is the location at `x`-th column and 1st row.
 
 ```
 agents=50
-map_file=random-32-32-20.map
+map_file=random-32-32-10.map
 solver=planner
 solved=1
-soc=1489
-soc_lb=1082
-makespan=51
-makespan_lb=48
+soc=1316
+soc_lb=1113
+makespan=55
+makespan_lb=53
+sum_of_loss=1191
+sum_of_loss_lb=1113
 comp_time=1
 seed=0
-starts=(5,16),(21,29),[...]
+starts=(11,6),(29,9),[...]
+goals=(7,18),(1,16),[...]
 solution=
-0:(5,16),(21,29),[...]
-1:(5,17),(21,28),[...]
+0:(11,6),(29,9),[...]
+1:(10,6),(29,10),[...]
 [...]
 ```
 
@@ -71,52 +74,39 @@ You can find details of all parameters with:
 build/main --help
 ```
 
+## Visualizer
+
+[@Kei18/mapf-visualizer](https://github.com/kei18/mapf-visualizer) is available.
+
 ## Experiments
 
-First, unzip instance files.
+The experimental script is written in Julia ≥1.7.
+Setup may require around 10 minutes.
 
 ```sh
-unzip assets/scen/mapf-scen-random.zip -d assets/scen
-unzip assets/scen/scen-warehouse.zip -d assets/scen
+sh scripts/setup.sh
 ```
 
-The experimental scripts are written in Julia 1.7.
-Please build the virtual environment.
+Edit the config file as you like.
+Examples are in `scripts/config` .
+The evaluation starts by following commands.
 
-```sh
-julia --project=. -e 'using Pkg; Pkg.instantiate()'
 ```
-
-*The docker image does not include Julia.
-
-Finally, run the following scripts.
-
-```sh
-julia --project=. --threads=auto
-
-# small complicated instance
-> include("scripts/small-complex-eval.jl"); main()
-
-# MAPF benchmark
+julia --project=scripts/ --threads=auto
 > include("scripts/eval.jl"); main("scripts/config/mapf-bench.yaml")
-
-# instances with massive agents
-> include("scripts/eval.jl"); main("scripts/config/warehouse.yaml")
 ```
+
 
 ## Notes
 
+- The empirical data of the manuscript was obtained with [exp/AAAI2023](https://github.com/Kei18/lacam/releases/tag/exp%2FAAAI2023).
 - The grid maps and scenarios in `assets/` are from [MAPF benchmarks](https://movingai.com/benchmarks/mapf.html).
 - `scen-warehouse.zip` is obtained from [MAPF-LNS2](https://github.com/Jiaoyang-Li/MAPF-LNS2).
-- The evaluation script is inspired by [Hydra](https://hydra.cc/).
-- The experiment of design choices is not included. Those are in different branches.
-- The repo was developed on macOS-10.15.
 - `tests/` is not comprehensive. It was used in early developments.
 - Auto formatting (clang-format) when committing:
 
 ```sh
-git config core.hooksPath .githooks
-chmod a+x .githooks/pre-commit
+git config core.hooksPath .githooks && chmod a+x .githooks/pre-commit
 ```
 
 ## Licence

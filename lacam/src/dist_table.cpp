@@ -14,7 +14,7 @@ DistTable::DistTable(const Instance* ins)
 
 void DistTable::setup(const Instance* ins)
 {
-  for (int i = 0; i < ins->N; ++i) {
+  for (size_t i = 0; i < ins->N; ++i) {
     OPEN.push_back(std::queue<Vertex*>());
     auto n = ins->goals[i];
     OPEN[i].push(n);

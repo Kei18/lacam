@@ -19,8 +19,8 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
     return false;
   }
 
-  for (auto t = 1; t < solution.size(); ++t) {
-    for (auto i = 0; i < ins.N; ++i) {
+  for (size_t t = 1; t < solution.size(); ++t) {
+    for (size_t i = 0; i < ins.N; ++i) {
       auto v_i_from = solution[t - 1][i];
       auto v_i_to = solution[t][i];
       // check connectivity
@@ -32,7 +32,7 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
       }
 
       // check conflicts
-      for (auto j = i + 1; j < ins.N; ++j) {
+      for (size_t j = i + 1; j < ins.N; ++j) {
         auto v_j_from = solution[t - 1][j];
         auto v_j_to = solution[t][j];
         // vertex conflicts
@@ -72,7 +72,7 @@ int get_sum_of_costs(const Solution& solution)
   if (solution.empty()) return 0;
   int c = 0;
   const auto N = solution.front().size();
-  for (auto i = 0; i < N; ++i) c += get_path_cost(solution, i);
+  for (size_t i = 0; i < N; ++i) c += get_path_cost(solution, i);
   return c;
 }
 
@@ -94,7 +94,7 @@ int get_sum_of_loss(const Solution& solution)
 int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
 {
   int c = 0;
-  for (auto i = 0; i < ins.N; ++i) {
+  for (size_t i = 0; i < ins.N; ++i) {
     c = std::max(c, dist_table.get(i, ins.starts[i]));
   }
   return c;
@@ -103,7 +103,7 @@ int get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
 int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table)
 {
   int c = 0;
-  for (auto i = 0; i < ins.N; ++i) {
+  for (size_t i = 0; i < ins.N; ++i) {
     c += dist_table.get(i, ins.starts[i]);
   }
   return c;

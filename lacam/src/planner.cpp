@@ -27,10 +27,10 @@ Node::Node(Config _C, DistTable& D, Node* _parent)
   // set priorities
   if (parent == nullptr) {
     // initialize
-    for (auto i = 0; i < N; ++i) priorities[i] = (float)D.get(i, C[i]) / N;
+    for (size_t i = 0; i < N; ++i) priorities[i] = (float)D.get(i, C[i]) / N;
   } else {
     // dynamic priorities, akin to PIBT
-    for (auto i = 0; i < N; ++i) {
+    for (size_t i = 0; i < N; ++i) {
       if (D.get(i, C[i]) != 0) {
         priorities[i] = parent->priorities[i] + 1;
       } else {
@@ -207,7 +207,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
   const auto K = ai->v_now->neighbor.size();
 
   // get candidates for next locations
-  for (auto k = 0; k < K; ++k) {
+  for (size_t k = 0; k < K; ++k) {
     auto u = ai->v_now->neighbor[k];
     C_next[i][k] = u;
     if (MT != nullptr)
@@ -222,7 +222,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
                      D.get(i, u) + tie_breakers[u->id];
             });
 
-  for (auto k = 0; k < K + 1; ++k) {
+  for (size_t k = 0; k < K + 1; ++k) {
     auto u = C_next[i][k];
 
     // avoid vertex conflicts
