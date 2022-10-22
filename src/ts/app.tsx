@@ -97,6 +97,14 @@ const App: React.SFC<{}> = () => {
               ) : (
                 ""
               )}
+              {data.headerDescription ? (
+                <div
+                  className="text-secondary text-center"
+                  dangerouslySetInnerHTML={{ __html: data.headerDescription }}
+                ></div>
+              ) : (
+                ""
+              )}
             </div>
           ) : (
             ""
@@ -145,6 +153,29 @@ const App: React.SFC<{}> = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+          ) : (
+            ""
+          )}
+
+          {data.demo ? (
+            <div className="mx-auto mt-5">
+              <p className="h5">Planning Demo</p>
+              <p>
+                LaCAM is a search-based, sub-optimal, complete, quick, and
+                scalable MAPF algorithm
+              </p>
+              <div className="row">
+                {data.demo.map((item, i) => {
+                  console.log(item);
+                  return (
+                    <div key={i} className="col-md text-center">
+                      <img src={images_gif[item.image]} className="img-fluid" />
+                      <p>{item.description}</p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             ""

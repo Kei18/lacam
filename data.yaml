@@ -1,60 +1,62 @@
-title: Priority Inheritance with Backtracking for Iterative Mulit-agent Path Finding
+title: "LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding"
 
 # meta-tag
-description: |-
-  PIBT algorithm solving multi-agent pathfinding iteratively
+description: LaCAM algorithm for quick multi-agent pathfinding
 site_name: research projects | Keisuke Okumura
-site_url: https://kei18.github.io/pibt2/
-thumbnail: thumbnail
+site_url: https://kei18.github.io/lacam/
+thumbnail: concept
 twitter: _kei18
 
 authors:
   - name: Keisuke Okumura
     url: https://kei18.github.io/
-  - name: Manao Machida
-  - name: Xavier Défago
-    url: https://www.coord.c.titech.ac.jp/m/defago/
-  - name: Yasumasa Tamura
-    url: https://y7amura.github.io/
 
 topLinks:
-  - name: jouranl paper (AIJ-22)
-    url: https://doi.org/10.1016/j.artint.2022.103752
+  - name: AAAI-23 (in press)
+    # url:
 
-headerImage: demo
+headerImage: concept
+headerDescription: |
+  the original image by <a href="https://pixabay.com/users/openclipart-vectors-30363/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2027200">OpenClipart-Vectors</a> from <a href="https://pixabay.com//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=image&amp;utm_content=2027200">Pixabay</a>
 
 subLinks:
   - name: code
-    url: https://github.com/Kei18/pibt2
-  - name: robot implementation (toio)
-    url: https://github.com/Kei18/toio-pibt
+    url: https://github.com/Kei18/lacam
+  - name: visualizer
+    url: https://github.com/Kei18/mapf-visualizer
 
 abstract: |
-  <p>In the Multi-Agent Path Finding (MAPF) problem, a set of agents moving on a graph must reach their own respective destinations without inter-agent collisions. In practical MAPF applications such as navigation in automated warehouses, where occasionally there are hundreds or more agents, MAPF must be solved iteratively online on a lifelong basis. Such scenarios rule out simple adaptations of offline compute-intensive optimal approaches; therefore, scalable sub-optimal algorithms are appealing for such settings. Ideal scalable algorithms are applicable to iterative scenarios and output plausible solutions in predictable computation time.</p>
-  <p>For the aforementioned purpose, in this study, a novel algorithm named Priority Inheritance with Backtracking (PIBT) is presented to solve MAPF iteratively. PIBT relies on an adaptive prioritization scheme to focus on the adjacent movements of multiple agents; hence it can be applied to several domains. We prove that, regardless of their number, all agents are guaranteed to reach their destination within a finite time when the environment is a graph such that all pairs of adjacent nodes belong to a simple cycle (e.g., biconnected). Experimental results covering various scenarios, including real robots demonstration, reveal the benefits of the proposed method. Even with hundreds of agents, PIBT yields acceptable solutions immediately and can solve large instances that other de facto MAPF approaches cannot. In addition, PIBT outperforms an existing approach on an iterative scenario of conveying packages in an automated warehouse in both runtime and solution quality.</p>
+  <p>We propose a novel complete algorithm for multi-agent pathfinding (MAPF) called <span class="text-danger">lazy constraints addition search for MAPF (LaCAM)</span>.
+  MAPF is a problem of finding collision-free paths for multiple agents on graphs and is the foundation of multi-robot coordination.
+  LaCAM uses a two-level search to find solutions quickly, even with hundreds of agents or more.
+  At the low-level, it searches constraints about agents' locations.
+  At the high-level, it searches a sequence of all agents' locations, following the constraints specified by the low-level.
+  Our exhaustive experiments reveal that LaCAM is comparable to or outperforms state-of-the-art sub-optimal MAPF algorithms in a variety of scenarios, regarding success rate, planning time, and solution quality of sum-of-costs.</p>
 
 news:
   - body: |
-      The paper has been accepted to Artificial Intelligence (AIJ)!
-    url: https://www.journals.elsevier.com/artificial-intelligence
-    date: Jul. 2022
+      The paper has been accepted to AAAI-23!
+    url: https://aaai.org/Conferences/AAAI-23/
+    date: Nov. 2022
 
-video: https://player.vimeo.com/video/645887407
-
-slides: https://speakerdeck.com/player/e3fb481327254d2fbd3d69e921c0f967
+demo:
+  - image: room
+    description: "400 agents, room-32-32-4, 30ms"
+  - image: tunnel
+    description: "4 agents, tunnel, 72ms"
+  - image: 10000
+    description: "10k agents, warehouse-20-40-10-2-2, 10sec"
 
 citation: |-
-  @article{okumura2022priority,
-  title = {Priority Inheritance with Backtracking for Iterative Multi-agent Path Finding},
-  journal = {Artificial Intelligence},
-  pages = {103752},
-  year = {2022},
-  issn = {0004-3702},
-  doi = {https://doi.org/10.1016/j.artint.2022.103752},
-  author = {Keisuke Okumura and Manao Machida and Xavier Défago and Yasumasa Tamura}
+  (in press)
+
+  @inproceedings{okumura2023lacam,
+    title={LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding},
+    booktitle={Proceedings of AAAI Conference on Artificial Intelligence (AAAI)},
+    year={2023},
+    author={Keisuke Okumura}
   }
 
-contact: |-
-  okumura.k [at] coord.c.titech.ac.jp
+contact: "okumura.k [at] coord.c.titech.ac.jp"
 
 copyright: Keisuke Okumura
