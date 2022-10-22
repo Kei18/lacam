@@ -101,7 +101,6 @@ julia --project=scripts/ --threads=auto
 - The grid maps and scenarios in `assets/` are from [MAPF benchmarks](https://movingai.com/benchmarks/mapf.html).
 - The empirical data of the manuscript was obtained with [exp/AAAI2023](https://github.com/Kei18/lacam/releases/tag/exp%2FAAAI2023).
 - LaCAM with different design choices: see [[pilot/greedy]](https://github.com/Kei18/lacam/releases/tag/pilot%2Fgreedy) and [[pilot/dbs]](https://github.com/Kei18/lacam/releases/tag/pilot%2Fdbs)
-- `scen-warehouse.zip` is obtained from [MAPF-LNS2](https://github.com/Jiaoyang-Li/MAPF-LNS2).
 - `tests/` is not comprehensive. It was used in early developments.
 - Auto formatting (clang-format) when committing:
 
