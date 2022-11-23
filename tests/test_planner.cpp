@@ -11,3 +11,13 @@ TEST(planner, solve)
   auto solution = solve(ins);
   ASSERT_TRUE(is_feasible_solution(ins, solution));
 }
+
+TEST(planner, unsolvable_instance)
+{
+  const auto scen_filename = "./tests/assets/4x1.scen";
+  const auto map_filename = "./tests/assets/4x1.map";
+  const auto ins = Instance(scen_filename, map_filename, 2);
+
+  auto solution = solve(ins);
+  ASSERT_TRUE(solution.empty());
+}
