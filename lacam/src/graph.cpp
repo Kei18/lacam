@@ -109,3 +109,9 @@ uint ConfigHasher::operator()(const Config& C) const
   }
   return hash;
 }
+
+std::ostream& operator<<(std::ostream& os, const Vertex* v)
+{
+  os << v->index;
+  return os;
+}

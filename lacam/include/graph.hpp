@@ -6,24 +6,24 @@
 
 struct Vertex {
   const int id;     // index for V in Graph
-  const int index;  // index for U, width * y + x, in Graph
+  const int index;  // index for U (width * y + x) in Graph
   std::vector<Vertex*> neighbor;
 
   Vertex(int _id, int _index);
 };
 using Vertices = std::vector<Vertex*>;
-using Config = std::vector<Vertex*>;  // a set of locations for all agents
+using Config = std::vector<Vertex*>;  // locations for all agents
 
 struct Graph {
   Vertices V;  // without nullptr
-  Vertices U;  // with nullptr
+  Vertices U;  // with nullptr, i.e., |U| = width * height
   int width;   // grid width
   int height;  // grid height
   Graph();
   Graph(const std::string& filename);  // taking map filename
   ~Graph();
 
-  int size() const;  // the number of vertices
+  int size() const;  // the number of vertices, |V|
 };
 
 bool is_same_config(
@@ -36,3 +36,5 @@ bool is_same_config(
 struct ConfigHasher {
   uint operator()(const Config& C) const;
 };
+
+std::ostream& operator<<(std::ostream& os, const Vertex* v);

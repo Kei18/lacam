@@ -8,10 +8,10 @@
 #include "utils.hpp"
 
 struct Instance {
-  const Graph G;
-  Config starts;
-  Config goals;
-  const uint N;  // number of agents
+  const Graph G;  // graph
+  Config starts;  // initial configuration
+  Config goals;   // goal configuration
+  const uint N;   // number of agents
 
   // for testing
   Instance(const std::string& map_filename,

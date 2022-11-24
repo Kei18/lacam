@@ -16,7 +16,6 @@ Constraint::~Constraint(){};
 Node::Node(Config _C, DistTable& D, Node* _parent)
     : C(_C),
       parent(_parent),
-      depth(_parent == nullptr ? 0 : _parent->depth + 1),
       priorities(C.size(), 0),
       order(C.size(), 0),
       search_tree(std::queue<Constraint*>())
@@ -87,7 +86,7 @@ Solution Planner::solve()
   OPEN.push(S);
   CLOSED[S->C] = S;
 
-  // best first search
+  // depth first search
   int loop_cnt = 0;
   std::vector<Config> solution;
 
@@ -147,8 +146,9 @@ Solution Planner::solve()
   }
 
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
-       solution.empty() ? "failed" : "solution found", "\texpanded:", loop_cnt,
-       "\texplored:", CLOSED.size());
+       solution.empty() ? (OPEN.empty() ? "no solution" : "failed")
+                        : "solution found",
+       "\tloop_itr:", loop_cnt, "\texplored:", CLOSED.size());
   // memory management
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
@@ -201,7 +201,7 @@ bool Planner::get_new_config(Node* S, Constraint* M)
   return true;
 }
 
-bool Planner::funcPIBT(Agent* ai, Agent* aj)
+bool Planner::funcPIBT(Agent* ai)
 {
   const auto i = ai->id;
   const auto K = ai->v_now->neighbor.size();
@@ -215,7 +215,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
   }
   C_next[i][K] = ai->v_now;
 
-  // sort
+  // sort, note: K + 1 is sufficient
   std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
             [&](Vertex* const v, Vertex* const u) {
               return D.get(i, v) + tie_breakers[v->id] <
@@ -227,12 +227,10 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
 
     // avoid vertex conflicts
     if (occupied_next[u->id] != nullptr) continue;
-    // avoid swap conflicts
-    if (aj != nullptr && u == aj->v_now) continue;
 
     auto& ak = occupied_now[u->id];
 
-    // avoid swap confilicts with constraints
+    // avoid swap conflicts with constraints
     if (ak != nullptr && ak->v_next == ai->v_now) continue;
 
     // reserve next location
@@ -243,7 +241,7 @@ bool Planner::funcPIBT(Agent* ai, Agent* aj)
     if (ak == nullptr || u == ai->v_now) return true;
 
     // priority inheritance
-    if (ak->v_next == nullptr && !funcPIBT(ak, ai)) continue;
+    if (ak->v_next == nullptr && !funcPIBT(ak)) continue;
 
     // success to plan next one step
     return true;

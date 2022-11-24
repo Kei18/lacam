@@ -22,7 +22,6 @@ struct Constraint {
 struct Node {
   const Config C;
   Node* parent;
-  const int depth;
 
   // for low-level search
   std::vector<float> priorities;
@@ -56,7 +55,7 @@ struct Planner {
   const int N;  // number of agents
   const int V_size;
   DistTable D;
-  Candidates C_next;
+  Candidates C_next;                // next location candidates
   std::vector<float> tie_breakers;  // random values, used in PIBT
   Agents A;
   Agents occupied_now;   // for quick collision checking
@@ -66,7 +65,7 @@ struct Planner {
           int _verbose = 0);
   Solution solve();
   bool get_new_config(Node* S, Constraint* M);
-  bool funcPIBT(Agent* ai, Agent* aj = nullptr);
+  bool funcPIBT(Agent* ai);
 };
 
 // main function
