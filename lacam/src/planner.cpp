@@ -16,7 +16,6 @@ Constraint::~Constraint(){};
 Node::Node(Config _C, DistTable& D, Node* _parent)
     : C(_C),
       parent(_parent),
-      depth(_parent == nullptr ? 0 : _parent->depth + 1),
       priorities(C.size(), 0),
       order(C.size(), 0),
       search_tree(std::queue<Constraint*>())
@@ -149,7 +148,7 @@ Solution Planner::solve()
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
        solution.empty() ? (OPEN.empty() ? "no solution" : "failed")
                         : "solution found",
-       "\texpanded:", loop_cnt, "\texplored:", CLOSED.size());
+       "\tloop_itr:", loop_cnt, "\texplored:", CLOSED.size());
   // memory management
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
@@ -216,7 +215,7 @@ bool Planner::funcPIBT(Agent* ai)
   }
   C_next[i][K] = ai->v_now;
 
-  // sort
+  // sort, note: K + 1 is sufficient
   std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
             [&](Vertex* const v, Vertex* const u) {
               return D.get(i, v) + tie_breakers[v->id] <
