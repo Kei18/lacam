@@ -1,5 +1,4 @@
-project-page-generator
-===
+# project-page-generator
 
 Simple project-page generator for research, assuming hosted on GitHub Pages.
 
@@ -36,7 +35,6 @@ yarn serve
 ```
 
 You can see the website via `http://localhost:1234`.
-
 
 ### 4. Push
 

@@ -161,13 +161,9 @@ const App: React.SFC<{}> = () => {
           {data.demo ? (
             <div className="mx-auto mt-5">
               <p className="h5">Planning Demo</p>
-              <p>
-                LaCAM is a search-based, sub-optimal, complete, quick, and
-                scalable MAPF algorithm
-              </p>
+              <p className="text-secondary">{data.demoDescription}</p>
               <div className="row">
                 {data.demo.map((item, i) => {
-                  console.log(item);
                   return (
                     <div key={i} className="col-md text-center">
                       <img src={images_gif[item.image]} className="img-fluid" />
@@ -223,6 +219,21 @@ const App: React.SFC<{}> = () => {
                   <code>{data.citation}</code>
                 </pre>
               </div>
+            </div>
+          ) : (
+            ""
+          )}
+
+          {data.otherLinks ? (
+            <div className="mx-auto mt-5">
+              <p className="h5">Other Links</p>
+              <ul>
+                {data.otherLinks.map((item, i) => (
+                  <li key={i}>
+                    <a href={item.url}>{item.name}</a>
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : (
             ""

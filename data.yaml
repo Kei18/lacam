@@ -22,8 +22,12 @@ headerDescription: |
 subLinks:
   - name: code
     url: https://github.com/Kei18/lacam
+
+otherLinks:
   - name: visualizer
     url: https://github.com/Kei18/mapf-visualizer
+  - name: pibt2
+    url: https://kei18.github.io/pibt2/
 
 abstract: |
   <p>We propose a novel complete algorithm for multi-agent pathfinding (MAPF) called <span class="text-danger">lazy constraints addition search for MAPF (LaCAM)</span>.
@@ -47,6 +51,9 @@ demo:
   - image: 10000
     description: "10k agents, warehouse-20-40-10-2-2, 10sec"
 
+demoDescription: |
+  LaCAM is a search-based, sub-optimal, complete, quick, and scalable MAPF algorithm
+
 citation: |-
   (in press)
 
@@ -54,7 +61,7 @@ citation: |-
     title={LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding},
     booktitle={Proceedings of AAAI Conference on Artificial Intelligence (AAAI)},
     year={2023},
-    author={Keisuke Okumura}
+    author={Okumura, Keisuke}
   }
 
 contact: "okumura.k [at] coord.c.titech.ac.jp"
