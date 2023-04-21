@@ -39,6 +39,10 @@ abstract: |
 
 news:
   - body: |
+      The followup work has been accepted to IJCAI-23!
+    url: https://kei18.github.io/lacam2/
+    date: Apr. 2023
+  - body: |
       The paper has been accepted to AAAI-23!
     url: https://aaai.org/Conferences/AAAI-23/
     date: Nov. 2022
