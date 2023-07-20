@@ -12,7 +12,9 @@ authors:
     url: https://kei18.github.io/
 
 topLinks:
-  - name: AAAI-23 (in press)
+  - name: AAAI-23 paper
+    url: https://ojs.aaai.org/index.php/AAAI/article/view/26377
+  - name: preprint on arXiv
     url: https://arxiv.org/abs/2211.13432
 
 headerImage: concept
