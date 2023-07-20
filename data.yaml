@@ -63,8 +63,6 @@ demoDescription: |
 slides: https://speakerdeck.com/player/7eff96d075984b7dbb75d249d9bc67fa
 
 citation: |-
-  (in press)
-
   @inproceedings{okumura2023lacam,
     title={LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding},
     booktitle={Proceedings of AAAI Conference on Artificial Intelligence (AAAI)},
