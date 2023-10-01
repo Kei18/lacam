@@ -18,11 +18,13 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: false
-      - uses: actions/checkout@v2
+      - name: submodule setup for google test
+        uses: actions/checkout@v2
         with:
           repository: google/googletest
           path: third_party/googletest
-      - uses: actions/checkout@v2
+      - name: submodule setup for argparse
+        uses: actions/checkout@v2
         with:
           repository: p-ranav/argparse
           path: third_party/argparse
