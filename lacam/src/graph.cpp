@@ -1,9 +1,11 @@
 #include "../include/graph.hpp"
 
 Vertex::Vertex(int _id, int _index)
-    : id(_id), index(_index), neighbor(Vertices())
+  : id(_id), index(_index), neighbor(Vertices())
 {
 }
+
+CargoVertex::CargoVertex(int _index) : index(_index) {}
 
 Graph::Graph() : V(Vertices()), width(0), height(0) {}
 Graph::~Graph()
@@ -18,7 +20,7 @@ static const std::regex r_height = std::regex(R"(height\s(\d+))");
 static const std::regex r_width = std::regex(R"(width\s(\d+))");
 static const std::regex r_map = std::regex(R"(map)");
 
-Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
+Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertices()), width(0), height(0), randomSeed(_randomSeed)
 {
   std::ifstream file(filename);
   if (!file) {
@@ -51,11 +53,19 @@ Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
     if (*(line.end() - 1) == 0x0d) line.pop_back();
     for (int x = 0; x < width; ++x) {
       char s = line[x];
-      if (s == 'T' or s == '@') continue;  // object
-      auto index = width * y + x;
-      auto v = new Vertex(V.size(), index);
-      V.push_back(v);
-      U[index] = v;
+      if (s != 'H') {
+        if (s == 'T' or s == '@') continue;  // object
+        auto index = width * y + x;
+        auto v = new Vertex(V.size(), index);
+        V.push_back(v);
+        U[index] = v;
+      }
+      else {
+        // Record cargoes here
+        auto index = width * y + x;
+        auto v = new CargoVertex(index);
+        C.push_back(v);
+      }
     }
     ++y;
   }
@@ -88,9 +98,51 @@ Graph::Graph(const std::string& filename) : V(Vertices()), width(0), height(0)
       }
     }
   }
+
+  // Add goal candidate
+  // TODO: This should be changed later when we apply
+  // cargo point to be access but not pass by
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      auto c = C[width * y + x];
+      if (c == nullptr) continue;
+      // left
+      if (x > 0) {
+        auto u = U[width * y + (x - 1)];
+        if (u != nullptr) G.insert(u);
+      }
+      // right
+      if (x < width - 1) {
+        auto u = U[width * y + (x + 1)];
+        if (u != nullptr) G.insert(u);
+      }
+      // up
+      if (y < height - 1) {
+        auto u = U[width * (y + 1) + x];
+        if (u != nullptr) G.insert(u);
+      }
+      // down 
+      if (y > 0) {
+        auto u = U[width * (y - 1) + x];
+        if (u != nullptr) G.insert(u);
+      }
+    }
+  }
 }
 
 int Graph::size() const { return V.size(); }
+
+Vertex* Graph::random_target_vertex() {
+  if (G.empty()) {
+    return nullptr;  // Return nullptr if the set is empty
+  }
+
+  int index = get_random_int(randomSeed, 0, G.size() - 1);
+  auto it = G.begin();
+  std::advance(it, index);
+
+  return *it;
+}
 
 bool is_same_config(const Config& C1, const Config& C2)
 {

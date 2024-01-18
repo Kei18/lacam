@@ -43,3 +43,9 @@ float get_random_float(std::mt19937* MT, float from, float to)
   std::uniform_real_distribution<float> r(from, to);
   return r(*MT);
 }
+
+int get_random_int(std::mt19937* MT, int from, int to)
+{
+  std::uniform_int_distribution<int> dist(from, to);
+  return dist(*MT);
+}

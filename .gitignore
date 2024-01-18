@@ -40,3 +40,4 @@
 **/build/
 Manifest.toml
 map
+.vscode/

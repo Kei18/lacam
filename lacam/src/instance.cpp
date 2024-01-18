@@ -1,12 +1,12 @@
 #include "../include/instance.hpp"
 
 Instance::Instance(const std::string& map_filename,
-                   const std::vector<int>& start_indexes,
-                   const std::vector<int>& goal_indexes)
-    : G(map_filename),
-      starts(Config()),
-      goals(Config()),
-      N(start_indexes.size())
+  const std::vector<int>& start_indexes,
+  const std::vector<int>& goal_indexes)
+  : G(map_filename),
+  starts(Config()),
+  goals(Config()),
+  N(start_indexes.size())
 {
   for (auto k : start_indexes) starts.push_back(G.U[k]);
   for (auto k : goal_indexes) goals.push_back(G.U[k]);
@@ -14,11 +14,11 @@ Instance::Instance(const std::string& map_filename,
 
 // for load instance
 static const std::regex r_instance =
-    std::regex(R"(\d+\t.+\.map\t\d+\t\d+\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t.+)");
+std::regex(R"(\d+\t.+\.map\t\d+\t\d+\t(\d+)\t(\d+)\t(\d+)\t(\d+)\t.+)");
 
 Instance::Instance(const std::string& scen_filename,
-                   const std::string& map_filename, const int _N)
-    : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N)
+  const std::string& map_filename, const int _N)
+  : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N)
 {
   // load start-goal pairs
   std::ifstream file(scen_filename);
@@ -52,8 +52,8 @@ Instance::Instance(const std::string& scen_filename,
 }
 
 Instance::Instance(const std::string& map_filename, std::mt19937* MT,
-                   const int _N)
-    : G(Graph(map_filename)), starts(Config()), goals(Config()), N(_N)
+  const int _N)
+  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), N(_N)
 {
   // random assignment
   const auto K = G.size();
