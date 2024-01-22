@@ -1,0 +1,12 @@
+agents=50
+map_file=warehouse-10-20-10-2-1.map
+solver=planner
+solved=1
+soc=4800
+soc_lb=4111
+makespan=161
+makespan_lb=161
+sum_of_loss=4466
+sum_of_loss_lb=4111
+comp_time=8
+seed=0

@@ -5,20 +5,20 @@ Constraint::Constraint() : who(std::vector<int>()), where(Vertices()), depth(0)
 }
 
 Constraint::Constraint(Constraint* parent, int i, Vertex* v)
-    : who(parent->who), where(parent->where), depth(parent->depth + 1)
+  : who(parent->who), where(parent->where), depth(parent->depth + 1)
 {
   who.push_back(i);
   where.push_back(v);
 }
 
-Constraint::~Constraint(){};
+Constraint::~Constraint() {};
 
 Node::Node(Config _C, DistTable& D, Node* _parent)
-    : C(_C),
-      parent(_parent),
-      priorities(C.size(), 0),
-      order(C.size(), 0),
-      search_tree(std::queue<Constraint*>())
+  : C(_C),
+  parent(_parent),
+  priorities(C.size(), 0),
+  order(C.size(), 0),
+  search_tree(std::queue<Constraint*>())
 {
   search_tree.push(new Constraint());
   const auto N = C.size();
@@ -27,12 +27,14 @@ Node::Node(Config _C, DistTable& D, Node* _parent)
   if (parent == nullptr) {
     // initialize
     for (size_t i = 0; i < N; ++i) priorities[i] = (float)D.get(i, C[i]) / N;
-  } else {
+  }
+  else {
     // dynamic priorities, akin to PIBT
     for (size_t i = 0; i < N; ++i) {
       if (D.get(i, C[i]) != 0) {
         priorities[i] = parent->priorities[i] + 1;
-      } else {
+      }
+      else {
         priorities[i] = parent->priorities[i] - (int)parent->priorities[i];
       }
     }
@@ -41,7 +43,7 @@ Node::Node(Config _C, DistTable& D, Node* _parent)
   // set order
   std::iota(order.begin(), order.end(), 0);
   std::sort(order.begin(), order.end(),
-            [&](int i, int j) { return priorities[i] > priorities[j]; });
+    [&](int i, int j) { return priorities[i] > priorities[j]; });
 }
 
 Node::~Node()
@@ -53,19 +55,19 @@ Node::~Node()
 }
 
 Planner::Planner(const Instance* _ins, const Deadline* _deadline,
-                 std::mt19937* _MT, int _verbose)
-    : ins(_ins),
-      deadline(_deadline),
-      MT(_MT),
-      verbose(_verbose),
-      N(ins->N),
-      V_size(ins->G.size()),
-      D(DistTable(ins)),
-      C_next(Candidates(N, std::array<Vertex*, 5>())),
-      tie_breakers(std::vector<float>(V_size, 0)),
-      A(Agents(N, nullptr)),
-      occupied_now(Agents(V_size, nullptr)),
-      occupied_next(Agents(V_size, nullptr))
+  std::mt19937* _MT, int _verbose)
+  : ins(_ins),
+  deadline(_deadline),
+  MT(_MT),
+  verbose(_verbose),
+  N(ins->nagents),
+  V_size(ins->G.size()),
+  D(DistTable(ins)),
+  C_next(Candidates(N, std::array<Vertex*, 5>())),
+  tie_breakers(std::vector<float>(V_size, 0)),
+  A(Agents(N, nullptr)),
+  occupied_now(Agents(V_size, nullptr)),
+  occupied_next(Agents(V_size, nullptr))
 {
 }
 
@@ -146,9 +148,9 @@ Solution Planner::solve()
   }
 
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\t",
-       solution.empty() ? (OPEN.empty() ? "no solution" : "failed")
-                        : "solution found",
-       "\tloop_itr:", loop_cnt, "\texplored:", CLOSED.size());
+    solution.empty() ? (OPEN.empty() ? "no solution" : "failed")
+    : "solution found",
+    "\tloop_itr:", loop_cnt, "\texplored:", CLOSED.size());
   // memory management
   for (auto a : A) delete a;
   for (auto M : GC) delete M;
@@ -185,7 +187,7 @@ bool Planner::get_new_config(Node* S, Constraint* M)
     // check swap collision
     auto l_pre = S->C[i]->id;
     if (occupied_next[l_pre] != nullptr && occupied_now[l] != nullptr &&
-        occupied_next[l_pre]->id == occupied_now[l]->id)
+      occupied_next[l_pre]->id == occupied_now[l]->id)
       return false;
 
     // set occupied_next
@@ -217,10 +219,10 @@ bool Planner::funcPIBT(Agent* ai)
 
   // sort, note: K + 1 is sufficient
   std::sort(C_next[i].begin(), C_next[i].begin() + K + 1,
-            [&](Vertex* const v, Vertex* const u) {
-              return D.get(i, v) + tie_breakers[v->id] <
-                     D.get(i, u) + tie_breakers[u->id];
-            });
+    [&](Vertex* const v, Vertex* const u) {
+      return D.get(i, v) + tie_breakers[v->id] <
+        D.get(i, u) + tie_breakers[u->id];
+    });
 
   for (size_t k = 0; k < K + 1; ++k) {
     auto u = C_next[i][k];
@@ -254,7 +256,7 @@ bool Planner::funcPIBT(Agent* ai)
 }
 
 Solution solve(const Instance& ins, const int verbose, const Deadline* deadline,
-               std::mt19937* MT)
+  std::mt19937* MT)
 {
   info(1, verbose, "elapsed:", elapsed_ms(deadline), "ms\tpre-processing");
   auto planner = Planner(&ins, deadline, MT, verbose);

@@ -1,20 +1,18 @@
 #include "../include/dist_table.hpp"
 
-DistTable::DistTable(const Instance& ins)
-    : K(ins.G.V.size()), table(ins.N, std::vector<int>(K, K))
+DistTable::DistTable(const Instance& ins) : K(ins.G.V.size()), table(ins.nagents, std::vector<int>(K, K))
 {
   setup(&ins);
 }
 
-DistTable::DistTable(const Instance* ins)
-    : K(ins->G.V.size()), table(ins->N, std::vector<int>(K, K))
+DistTable::DistTable(const Instance* ins) : K(ins->G.V.size()), table(ins->nagents, std::vector<int>(K, K))
 {
   setup(ins);
 }
 
 void DistTable::setup(const Instance* ins)
 {
-  for (size_t i = 0; i < ins->N; ++i) {
+  for (size_t i = 0; i < ins->nagents; ++i) {
     OPEN.push_back(std::queue<Vertex*>());
     auto n = ins->goals[i];
     OPEN[i].push(n);
