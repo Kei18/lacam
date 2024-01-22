@@ -5,26 +5,14 @@ int main(int argc, char* argv[])
 {
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
-  program.add_argument("-m", "--map").help("map file").required();
-  program.add_argument("-i", "--scen")
-    .help("scenario file")
-    .default_value(std::string(""));
-  program.add_argument("-N", "--num").help("number of agents").required();
-  program.add_argument("-s", "--seed")
-    .help("seed")
-    .default_value(std::string("0"));
-  program.add_argument("-v", "--verbose")
-    .help("verbose")
-    .default_value(std::string("0"));
-  program.add_argument("-t", "--time_limit_sec")
-    .help("time limit sec")
-    .default_value(std::string("10"));
-  program.add_argument("-o", "--output")
-    .help("output file")
-    .default_value(std::string("./build/result.txt"));
-  program.add_argument("-l", "--log_short")
-    .default_value(false)
-    .implicit_value(true);
+  program.add_argument("-m", "--map").help("map file").required();                                              // map file
+  program.add_argument("-ng", "--ngoals").help("number of goals").required();                                   // number of goals: agent first go to get goal, and then return to unloading port
+  program.add_argument("-na", "--nagents").help("number of agents").required();                                 // number of agents
+  program.add_argument("-s", "--seed").help("seed").default_value(std::string("0"));                            // random seed
+  program.add_argument("-v", "--verbose").help("verbose").default_value(std::string("0"));                      // verbose
+  program.add_argument("-t", "--time_limit_sec").help("time limit sec").default_value(std::string("10"));       // time limit (second)
+  program.add_argument("-o", "--output").help("output file").default_value(std::string("./result/result.txt")); // output file
+  program.add_argument("-l", "--log_short").default_value(false).implicit_value(true);
 
   try {
     program.parse_known_args(argc, argv);
@@ -37,17 +25,15 @@ int main(int argc, char* argv[])
 
   // setup instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
-  const auto time_limit_sec =
-    std::stoi(program.get<std::string>("time_limit_sec"));
-  const auto scen_name = program.get<std::string>("scen");
+  const auto time_limit_sec = std::stoi(program.get<std::string>("time_limit_sec"));
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
   const auto map_name = program.get<std::string>("map");
   const auto output_name = program.get<std::string>("output");
   const auto log_short = program.get<bool>("log_short");
-  const auto N = std::stoi(program.get<std::string>("num"));
-  const auto ins = scen_name.size() > 0 ? Instance(scen_name, map_name, N)
-    : Instance(map_name, &MT, N);
+  const auto ngoals = std::stoi(program.get<std::string>("ngoals"));
+  const auto nagents = std::stoi(program.get<std::string>("nagents"));
+  const auto ins = Instance(map_name, &MT, nagents, ngoals);
   if (!ins.is_valid(1)) return 1;
 
   // solve

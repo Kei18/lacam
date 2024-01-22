@@ -1,9 +1,6 @@
 #include "../include/graph.hpp"
 
-Vertex::Vertex(int _id, int _index)
-  : id(_id), index(_index), neighbor(Vertices())
-{
-}
+Vertex::Vertex(int _id, int _index) : id(_id), index(_index), neighbor(Vertices()) {}
 
 CargoVertex::CargoVertex(int _index) : index(_index) {}
 
@@ -15,7 +12,7 @@ Graph::~Graph()
   V.clear();
 }
 
-// to load graph
+// regular function to load graph
 static const std::regex r_height = std::regex(R"(height\s(\d+))");
 static const std::regex r_width = std::regex(R"(width\s(\d+))");
 static const std::regex r_map = std::regex(R"(map)");
@@ -53,18 +50,25 @@ Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertice
     if (*(line.end() - 1) == 0x0d) line.pop_back();
     for (int x = 0; x < width; ++x) {
       char s = line[x];
-      if (s != 'H') {
-        if (s == 'T' or s == '@') continue;  // object
+      if (s == 'H') {
+        // record cargoes
+        auto index = width * y + x;
+        auto v = new CargoVertex(index);
+        C.push_back(v);
+      }
+      else if (s == 'U') {
+        // record unloading ports
+        auto index = width * y + x;
+        auto v = new Vertex(unloading_ports.size(), index);
+        unloading_ports.push_back(v);
+      }
+      else {
+        // record roads
+        if (s == 'T' or s == '@') continue;
         auto index = width * y + x;
         auto v = new Vertex(V.size(), index);
         V.push_back(v);
         U[index] = v;
-      }
-      else {
-        // Record cargoes here
-        auto index = width * y + x;
-        auto v = new CargoVertex(index);
-        C.push_back(v);
       }
     }
     ++y;
@@ -128,6 +132,7 @@ Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertice
       }
     }
   }
+
 }
 
 int Graph::size() const { return V.size(); }

@@ -8,20 +8,14 @@
 #include "utils.hpp"
 
 struct Instance {
-  const Graph G;  // graph
-  Config starts;  // initial configuration
-  Config goals;   // goal configuration
-  const uint N;   // number of agents
+  Graph G;            // graph
+  Config starts;            // initial configuration
+  Config goals;             // goal configuration
+  Config unloading_port;    // delivery outlet configuration
+  const uint nagents;       // number of agents
+  const uint ngoals;        // number if goals
 
-  // for testing
-  Instance(const std::string& map_filename,
-    const std::vector<int>& start_indexes,
-    const std::vector<int>& goal_indexes);
-  // for MAPF benchmark
-  Instance(const std::string& scen_filename, const std::string& map_filename,
-    const int _N = 1);
-  // random instance generation
-  Instance(const std::string& map_filename, std::mt19937* MT, const int _N = 1);
+  Instance(const std::string& map_filename, std::mt19937* MT, const int _nagents = 1, const int _ngoals = 1);
   ~Instance() {}
 
   // simple feasibility check of instance

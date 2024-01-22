@@ -5,15 +5,15 @@
 #include "utils.hpp"
 
 struct Vertex {
-  const int id;     // index for V in Graph
-  const int index;  // index for U (width * y + x) in Graph
+  const int id;       // index for V in Graph
+  const int index;    // index for U (width * y + x) in Graph
   std::vector<Vertex*> neighbor;
 
   Vertex(int _id, int _index);
 };
 
 struct CargoVertex {
-  const int index;  // index for cargo (width * y + x) in Graph
+  const int index;    // index for cargo (width * y + x) in Graph
   CargoVertex(int _index);
 };
 
@@ -23,19 +23,20 @@ using TargetVertices = std::unordered_set<Vertex*>;
 using Config = std::vector<Vertex*>;  // locations for all agents
 
 struct Graph {
-  Vertices V;  // without nullptr
-  Vertices U;  // with nullptr, i.e., |U| = width * height
+  Vertices V;               // without nullptr
+  Vertices U;               // with nullptr, i.e., |U| = width * height
+  Vertices unloading_ports; // unloading port
   CargoVertices C;
-  TargetVertices G;  // with nullptr, goal candidate
-  int width;   // grid width
-  int height;  // grid height
+  TargetVertices G;         // with nullptr, goal candidate
+  int width;                // grid width
+  int height;               // grid height
   std::mt19937* randomSeed;
 
   Graph();
   Graph(const std::string& filename, std::mt19937* _randomSeed = 0);
   ~Graph();
 
-  int size() const;  // the number of vertices, |V|
+  int size() const;    // the number of vertices, |V|
   Vertex* random_target_vertex();
 };
 
