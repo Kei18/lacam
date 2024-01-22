@@ -1,6 +1,6 @@
 #include "../include/graph.hpp"
 
-Vertex::Vertex(int _id, int _index) : id(_id), index(_index), neighbor(Vertices()) {}
+Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(_width), neighbor(Vertices()) {}
 
 CargoVertex::CargoVertex(int _index) : index(_index) {}
 
@@ -56,19 +56,17 @@ Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertice
         auto v = new CargoVertex(index);
         C.push_back(v);
       }
-      else if (s == 'U') {
-        // record unloading ports
-        auto index = width * y + x;
-        auto v = new Vertex(unloading_ports.size(), index);
-        unloading_ports.push_back(v);
-      }
       else {
         // record roads
         if (s == 'T' or s == '@') continue;
         auto index = width * y + x;
-        auto v = new Vertex(V.size(), index);
+        auto v = new Vertex(V.size(), index, width);
         V.push_back(v);
         U[index] = v;
+        if (s == 'U') {
+          // record unloading ports
+          unloading_ports.push_back(v);
+        }
       }
     }
     ++y;
@@ -165,10 +163,4 @@ uint ConfigHasher::operator()(const Config& C) const
     hash ^= v->id + 0x9e3779b9 + (hash << 6) + (hash >> 2);
   }
   return hash;
-}
-
-std::ostream& operator<<(std::ostream& os, const Vertex* v)
-{
-  os << v->index;
-  return os;
 }

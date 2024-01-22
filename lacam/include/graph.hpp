@@ -7,9 +7,22 @@
 struct Vertex {
   const int id;       // index for V in Graph
   const int index;    // index for U (width * y + x) in Graph
+  const int width;    // indth of graph
   std::vector<Vertex*> neighbor;
 
-  Vertex(int _id, int _index);
+  Vertex(int _id, int _index, int _width);
+
+  bool operator==(const Vertex& other) const {
+    return id == other.id && index == other.index;
+  }
+
+  // Reload << operator
+  friend std::ostream& operator<<(std::ostream& os, const Vertex& v) {
+    int x = v.index % v.width;
+    int y = v.index / v.width;
+    os << "(" << x << ", " << y << ")";
+    return os;
+  }
 };
 
 struct CargoVertex {
@@ -21,6 +34,22 @@ using Vertices = std::vector<Vertex*>;
 using CargoVertices = std::vector<CargoVertex*>;
 using TargetVertices = std::unordered_set<Vertex*>;
 using Config = std::vector<Vertex*>;  // locations for all agents
+
+// Overload the << for Config
+inline std::ostream& operator<<(std::ostream& os, const Config& config) {
+  os << "[";
+  for (size_t i = 0; i < config.size(); ++i) {
+    if (config[i]) {  // Check if the pointer is not null
+      os << *config[i];  // Use the overloaded << for Vertex
+    }
+    if (i < config.size() - 1) {
+      os << ", ";  // Add a comma between elements
+    }
+  }
+  os << "]";
+  return os;
+}
+
 
 struct Graph {
   Vertices V;               // without nullptr
@@ -50,5 +79,3 @@ bool is_same_config(
 struct ConfigHasher {
   uint operator()(const Config& C) const;
 };
-
-std::ostream& operator<<(std::ostream& os, const Vertex* v);

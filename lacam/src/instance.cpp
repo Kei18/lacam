@@ -1,7 +1,7 @@
 #include "../include/instance.hpp"
 
 Instance::Instance(const std::string& map_filename, std::mt19937* MT, const int _nagents, const int _ngoals)
-  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), unloading_port(Config()), nagents(_nagents), ngoals(_ngoals)
+  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), nagents(_nagents), ngoals(_ngoals)
 {
   const auto K = G.size();
 
@@ -34,4 +34,40 @@ bool Instance::is_valid(const int verbose) const
     return false;
   }
   return true;
+}
+
+int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals) {
+  std::cerr << "Remain goals: " << remain_goals << std::endl;
+  int reached_count = 0;
+
+  // Iterating through each time step
+  for (size_t i = 0; i < vertex_list.size(); ++i) {
+    bool any_vertex_reached = false;
+
+    // Check each vertex at this time step
+    for (size_t j = 0; j < vertex_list[i].size(); ++j) {
+      for (size_t k = 0; k < goals.size(); ++k) {
+        // TODO: assign goals to closed free agents
+        if ((*vertex_list[i][j] == *goals[k]) && (remain_goals > 0)) {
+          remain_goals--;
+          // Update goals and starts, mark that a vertex has reached
+          if (goals[k] == G.unloading_ports[0]) {
+            goals[k] = G.random_target_vertex();
+            reached_count++;
+          }
+          else {
+            goals[k] = G.unloading_ports[0];
+          }
+          any_vertex_reached = true;
+        }
+      }
+    }
+
+    // If any vertex reached a goal at this time step, update starts and break
+    if (any_vertex_reached) {
+      starts = vertex_list[i];
+      break;
+    }
+  }
+  return reached_count;
 }

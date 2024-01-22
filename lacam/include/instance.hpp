@@ -8,10 +8,9 @@
 #include "utils.hpp"
 
 struct Instance {
-  Graph G;            // graph
+  Graph G;                  // graph
   Config starts;            // initial configuration
   Config goals;             // goal configuration
-  Config unloading_port;    // delivery outlet configuration
   const uint nagents;       // number of agents
   const uint ngoals;        // number if goals
 
@@ -20,6 +19,9 @@ struct Instance {
 
   // simple feasibility check of instance
   bool is_valid(const int verbose = 0) const;
+
+  // check first batch of agents reach goals
+  int update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals);
 };
 
 // solution: a sequence of configurations

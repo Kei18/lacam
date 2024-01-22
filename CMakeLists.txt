@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(lacam-project CXX)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 add_subdirectory(./lacam)
 add_subdirectory(./third_party/argparse)
 add_subdirectory(./third_party/googletest)

@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
   // setup instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
   const auto time_limit_sec = std::stoi(program.get<std::string>("time_limit_sec"));
+  const auto deadline = Deadline(time_limit_sec * 1000);
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
   const auto map_name = program.get<std::string>("map");
@@ -33,25 +34,52 @@ int main(int argc, char* argv[])
   const auto log_short = program.get<bool>("log_short");
   const auto ngoals = std::stoi(program.get<std::string>("ngoals"));
   const auto nagents = std::stoi(program.get<std::string>("nagents"));
-  const auto ins = Instance(map_name, &MT, nagents, ngoals);
-  if (!ins.is_valid(1)) return 1;
+  auto ins = Instance(map_name, &MT, nagents, ngoals);
 
-  // solve
-  const auto deadline = Deadline(time_limit_sec * 1000);
-  const auto solution = solve(ins, verbose - 1, &deadline, &MT);
-  const auto comp_time_ms = deadline.elapsed_ms();
-
-  // failure
-  if (solution.empty()) info(1, verbose, "failed to solve");
-
-  // check feasibility
-  if (!is_feasible_solution(ins, solution, verbose)) {
-    info(0, verbose, "invalid solution");
+  // check paras
+  if (!ins.is_valid(1)) {
+    std::cerr << "instance is invalid!" << std::endl;
+    return 1;
+  }
+  if (nagents > ngoals) {
+    std::cerr << "number of goals must larger or equal to number of agents" << std::endl;
     return 1;
   }
 
-  // post processing
-  print_stats(verbose, ins, solution, comp_time_ms);
-  make_log(ins, solution, output_name, comp_time_ms, map_name, seed, log_short);
+  // solving
+  int nagents_with_new_goals = 0;
+  int step = 1;
+  for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
+    // ternimal log 
+    std::cerr << "STEP " << step << std::endl;
+    std::cerr << "Starts: " << ins.starts << std::endl;
+    std::cerr << "Goals: " << ins.goals << std::endl;
+
+    // statistics
+    step++;
+
+    auto solution = solve(ins, verbose - 1, &deadline, &MT);
+    const auto comp_time_ms = deadline.elapsed_ms();
+
+    // failure
+    if (solution.empty()) {
+      info(1, verbose, "failed to solve");
+      return 1;
+    }
+
+    // check feasibility
+    if (!is_feasible_solution(ins, solution, verbose)) {
+      info(0, verbose, "invalid solution");
+      return 1;
+    }
+
+    // post processing
+    print_stats(verbose, ins, solution, comp_time_ms);
+    make_log(ins, solution, output_name, comp_time_ms, map_name, seed, log_short);
+
+    // assign new goals
+    nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
+    std::cerr << nagents_with_new_goals << std::endl;
+  }
   return 0;
 }
