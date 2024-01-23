@@ -173,7 +173,7 @@ void make_log(const Instance& ins, const Solution& solution,
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\nsolution=\n";
-  std::vector<std::vector<int> > new_sol(ins.N, std::vector<int>(solution.size(), 0));
+  std::vector<std::vector<int> > new_sol(ins.nagents, std::vector<int>(solution.size(), 0));
   for (size_t t = 0; t < solution.size(); ++t) {
     log << t << ":";
     auto C = solution[t];
@@ -205,8 +205,8 @@ void make_log(const Instance& ins, const Solution& solution,
   for (size_t a = 0; a < new_sol.size(); ++a) {
     out2 << "  agent" << a << ":" << std::endl;
     for (size_t t = 0; t < new_sol[a].size(); ++t) {
-      out2 << "    - x: " << get_x(new_sol[a][t]) << std::endl
-          << "      y: " << get_y(new_sol[a][t]) << std::endl
+      out2 << "    - x: " << get_y(new_sol[a][t]) << std::endl
+          << "      y: " << get_x(new_sol[a][t]) << std::endl
           << "      t: " << t << std::endl;
     }
   }
