@@ -173,13 +173,43 @@ void make_log(const Instance& ins, const Solution& solution,
     log << "(" << get_x(k) << "," << get_y(k) << "),";
   }
   log << "\nsolution=\n";
+  std::vector<std::vector<int> > new_sol(ins.N, std::vector<int>(solution.size(), 0));
   for (size_t t = 0; t < solution.size(); ++t) {
     log << t << ":";
     auto C = solution[t];
+    int idx = 0;
     for (auto v : C) {
       log << "(" << get_x(v->index) << "," << get_y(v->index) << "),";
+      new_sol[idx][t] = v->index;
+      idx++;
     }
     log << "\n";
   }
   log.close();
+
+
+  std::ofstream out2("vis.yaml");
+  out2 << "statistics:" << std::endl;
+  out2 << "  makespan: " << get_makespan(solution) << std::endl;
+  out2 << "  makespan_lb: " << get_makespan_lower_bound(ins, dist_table)<< std::endl;
+  out2 << "  seed: " << seed << "\n";
+  out2 << "  solved: " << !solution.empty() << "\n";
+  out2 << "  soc: " << get_sum_of_costs(solution) << "\n";
+  out2 << "  soc_lb: " << get_sum_of_costs_lower_bound(ins, dist_table) << "\n";
+
+  out2 << "schedule:" << std::endl;
+
+
+
+
+  for (size_t a = 0; a < new_sol.size(); ++a) {
+    out2 << "  agent" << a << ":" << std::endl;
+    for (size_t t = 0; t < new_sol[a].size(); ++t) {
+      out2 << "    - x: " << get_x(new_sol[a][t]) << std::endl
+          << "      y: " << get_y(new_sol[a][t]) << std::endl
+          << "      t: " << t << std::endl;
+    }
+  }
+
+  out2.close();
 }
