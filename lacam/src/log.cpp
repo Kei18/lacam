@@ -208,6 +208,15 @@ void Log::make_life_long_log(const Instance& ins, const int seed)
   auto get_y = [&](int k) { return k / ins.G.width; };
   std::vector<std::vector<int> > new_sol(ins.nagents, std::vector<int>(life_long_solution.size(), 0));
 
+  for (size_t t = 0; t < life_long_solution.size(); ++t) {
+    auto C = life_long_solution[t];
+    int idx = 0;
+    for (auto v : C) {
+      new_sol[idx][t] = v->index;
+      idx++;
+    }
+  }
+
   std::ofstream out2("vis.yaml");
   out2 << "statistics:" << std::endl;
   out2 << "  makespan: " << get_makespan() << std::endl;
