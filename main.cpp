@@ -50,7 +50,8 @@ int main(int argc, char* argv[])
   int nagents_with_new_goals = 0;
   int step = 1;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
-    // ternimal log 
+    // ternimal log
+    std::cerr << "------------------------------------" << std::endl;
     std::cerr << "STEP " << step << std::endl;
     std::cerr << "Starts: " << ins.starts << std::endl;
     std::cerr << "Goals: " << ins.goals << std::endl;
@@ -79,7 +80,7 @@ int main(int argc, char* argv[])
 
     // assign new goals
     nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
-    std::cerr << nagents_with_new_goals << std::endl;
+    std::cerr << "Reached Goals: " << nagents_with_new_goals << std::endl;
   }
   return 0;
 }

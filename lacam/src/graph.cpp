@@ -156,6 +156,15 @@ bool is_same_config(const Config& C1, const Config& C2)
   return true;
 }
 
+bool is_reach_at_least_one(const Config& C1, const Config& C2)
+{
+  const auto N = C1.size();
+  for (size_t i = 0; i < N; i++) {
+    if (C1[i]->id == C2[i]->id) return true;
+  }
+  return false;
+}
+
 uint ConfigHasher::operator()(const Config& C) const
 {
   uint hash = C.size();

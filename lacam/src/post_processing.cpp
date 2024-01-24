@@ -14,7 +14,7 @@ bool is_feasible_solution(const Instance& ins, const Solution& solution,
   }
 
   // check goal locations
-  if (!is_same_config(solution.back(), ins.goals)) {
+  if (!is_reach_at_least_one(solution.back(), ins.goals)) {
     info(1, verbose, "invalid goals");
     return false;
   }
@@ -191,7 +191,7 @@ void make_log(const Instance& ins, const Solution& solution,
   std::ofstream out2("vis.yaml");
   out2 << "statistics:" << std::endl;
   out2 << "  makespan: " << get_makespan(solution) << std::endl;
-  out2 << "  makespan_lb: " << get_makespan_lower_bound(ins, dist_table)<< std::endl;
+  out2 << "  makespan_lb: " << get_makespan_lower_bound(ins, dist_table) << std::endl;
   out2 << "  seed: " << seed << "\n";
   out2 << "  solved: " << !solution.empty() << "\n";
   out2 << "  soc: " << get_sum_of_costs(solution) << "\n";
@@ -206,8 +206,8 @@ void make_log(const Instance& ins, const Solution& solution,
     out2 << "  agent" << a << ":" << std::endl;
     for (size_t t = 0; t < new_sol[a].size(); ++t) {
       out2 << "    - x: " << get_y(new_sol[a][t]) << std::endl
-          << "      y: " << get_x(new_sol[a][t]) << std::endl
-          << "      t: " << t << std::endl;
+        << "      y: " << get_x(new_sol[a][t]) << std::endl
+        << "      t: " << t << std::endl;
     }
   }
 

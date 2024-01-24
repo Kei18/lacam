@@ -46,20 +46,19 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
 
     // Check each vertex at this time step
     for (size_t j = 0; j < vertex_list[i].size(); ++j) {
-      for (size_t k = 0; k < goals.size(); ++k) {
-        // TODO: assign goals to closed free agents
-        if ((*vertex_list[i][j] == *goals[k]) && (remain_goals > 0)) {
-          remain_goals--;
-          // Update goals and starts, mark that a vertex has reached
-          if (goals[k] == G.unloading_ports[0]) {
-            goals[k] = G.random_target_vertex();
-            reached_count++;
-          }
-          else {
-            goals[k] = G.unloading_ports[0];
-          }
-          any_vertex_reached = true;
+      // TODO: assign goals to closed free agents
+      if ((*vertex_list[i][j] == *goals[j]) && (remain_goals > 0)) {
+        remain_goals--;
+        // Update goals and starts, mark that a vertex has reached
+        if (goals[j] == G.unloading_ports[0]) {
+          std::cerr << "i: " << i << " j: " << j << std::endl;
+          goals[j] = G.random_target_vertex();
+          reached_count++;
         }
+        else {
+          goals[j] = G.unloading_ports[0];
+        }
+        any_vertex_reached = true;
       }
     }
 
@@ -69,5 +68,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
       break;
     }
   }
+
+  std::cerr << "Ends: " << starts << std::endl;
   return reached_count;
 }

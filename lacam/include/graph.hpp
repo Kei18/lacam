@@ -69,9 +69,9 @@ struct Graph {
   Vertex* random_target_vertex();
 };
 
-bool is_same_config(
-  const Config& C1,
-  const Config& C2);  // check equivalence of two configurations
+bool is_same_config(const Config& C1, const Config& C2);  // check equivalence of two configurations
+
+bool is_reach_at_least_one(const Config& C1, const Config& C2);
 
 // hash function of configuration
 // c.f.
