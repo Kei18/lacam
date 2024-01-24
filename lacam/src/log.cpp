@@ -5,8 +5,16 @@ Log::Log() {}
 Log::~Log() {}
 
 bool Log::update_solution(Solution& solution) {
+  // Update step solution
   step_solution = solution;
 
+  // Update life long solution
+  if (life_long_solution.empty()) {
+    life_long_solution = step_solution;
+  }
+  else {
+    life_long_solution.insert(life_long_solution.end(), step_solution.begin() + 1, step_solution.end());
+  }
   return true;
 }
 
@@ -135,7 +143,7 @@ void Log::print_stats(const int verbose, const Instance& ins, const double comp_
 // for log of map_name
 static const std::regex r_map_name = std::regex(R"(.+/(.+))");
 
-void Log::make_log(const Instance& ins,
+void Log::make_step_log(const Instance& ins,
   const std::string& output_name, const double comp_time_ms,
   const std::string& map_name, const int seed, const bool log_short)
 {
@@ -191,7 +199,14 @@ void Log::make_log(const Instance& ins,
     log << "\n";
   }
   log.close();
+}
 
+void Log::make_life_long_log(const Instance& ins, const int seed)
+{
+  auto dist_table = DistTable(ins);
+  auto get_x = [&](int k) { return k % ins.G.width; };
+  auto get_y = [&](int k) { return k / ins.G.width; };
+  std::vector<std::vector<int> > new_sol(ins.nagents, std::vector<int>(life_long_solution.size(), 0));
 
   std::ofstream out2("vis.yaml");
   out2 << "statistics:" << std::endl;
@@ -201,11 +216,7 @@ void Log::make_log(const Instance& ins,
   out2 << "  solved: " << !step_solution.empty() << "\n";
   out2 << "  soc: " << get_sum_of_costs() << "\n";
   out2 << "  soc_lb: " << get_sum_of_costs_lower_bound(ins, dist_table) << "\n";
-
   out2 << "schedule:" << std::endl;
-
-
-
 
   for (size_t a = 0; a < new_sol.size(); ++a) {
     out2 << "  agent" << a << ":" << std::endl;
@@ -215,6 +226,5 @@ void Log::make_log(const Instance& ins,
         << "      t: " << t << std::endl;
     }
   }
-
   out2.close();
 }

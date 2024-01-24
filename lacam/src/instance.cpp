@@ -38,36 +38,26 @@ bool Instance::is_valid(const int verbose) const
 
 int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals) {
   std::cerr << "Remain goals: " << remain_goals << std::endl;
+  int step = vertex_list.size() - 1;
   int reached_count = 0;
 
-  // Iterating through each time step
-  for (size_t i = 0; i < vertex_list.size(); ++i) {
-    bool any_vertex_reached = false;
-
-    // Check each vertex at this time step
-    for (size_t j = 0; j < vertex_list[i].size(); ++j) {
-      // TODO: assign goals to closed free agents
-      if ((*vertex_list[i][j] == *goals[j]) && (remain_goals > 0)) {
-        remain_goals--;
-        // Update goals and starts, mark that a vertex has reached
-        if (goals[j] == G.unloading_ports[0]) {
-          goals[j] = G.random_target_vertex();
-          reached_count++;
-        }
-        else {
-          goals[j] = G.unloading_ports[0];
-        }
-        any_vertex_reached = true;
+  // Check each vertex at this time step
+  for (size_t j = 0; j < vertex_list[step].size(); ++j) {
+    // TODO: assign goals to closed free agents
+    if ((*vertex_list[step][j] == *goals[j]) && (remain_goals > 0)) {
+      remain_goals--;
+      // Update goals and starts, mark that a vertex has reached
+      if (goals[j] == G.unloading_ports[0]) {
+        goals[j] = G.random_target_vertex();
+        reached_count++;
       }
-    }
-
-    // If any vertex reached a goal at this time step, update starts and break
-    if (any_vertex_reached) {
-      starts = vertex_list[i];
-      break;
+      else {
+        goals[j] = G.unloading_ports[0];
+      }
     }
   }
 
+  starts = vertex_list[step];
   std::cerr << "Ends: " << starts << std::endl;
   return reached_count;
 }

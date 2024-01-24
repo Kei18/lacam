@@ -22,5 +22,6 @@ struct Log {
     int get_makespan_lower_bound(const Instance& ins, DistTable& D);
     int get_sum_of_costs_lower_bound(const Instance& ins, DistTable& D);
     void print_stats(const int verbose, const Instance& ins, const double comp_time_ms);
-    void make_log(const Instance& ins, const std::string& output_name, const double comp_time_ms, const std::string& map_name, const int seed, const bool log_short = false);
+    void make_step_log(const Instance& ins, const std::string& output_name, const double comp_time_ms, const std::string& map_name, const int seed, const bool log_short = false);
+    void make_life_long_log(const Instance& ins, const int seed);
 };

@@ -85,11 +85,14 @@ int main(int argc, char* argv[])
 
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
-    log.make_log(ins, output_name, comp_time_ms, map_name, seed, log_short);
+    log.make_step_log(ins, output_name, comp_time_ms, map_name, seed, log_short);
 
     // assign new goals
     nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
     std::cerr << "Reached Goals: " << nagents_with_new_goals << std::endl;
   }
+
+  log.make_life_long_log(ins, seed);
+
   return 0;
 }
