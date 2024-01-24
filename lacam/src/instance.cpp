@@ -51,7 +51,6 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
         remain_goals--;
         // Update goals and starts, mark that a vertex has reached
         if (goals[j] == G.unloading_ports[0]) {
-          std::cerr << "i: " << i << " j: " << j << std::endl;
           goals[j] = G.random_target_vertex();
           reached_count++;
         }

@@ -46,6 +46,9 @@ int main(int argc, char* argv[])
     return 1;
   }
 
+  // initliaze log system
+  Log log;
+
   // solving
   int nagents_with_new_goals = 0;
   int step = 1;
@@ -68,15 +71,21 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+    // update step solution
+    if (!log.update_solution(solution)) {
+      std::cerr << "Update step solution fails!" << std::endl;
+      return 1;
+    }
+
     // check feasibility
-    if (!is_feasible_solution(ins, solution, verbose)) {
+    if (!log.is_feasible_solution(ins, verbose)) {
       info(0, verbose, "invalid solution");
       return 1;
     }
 
     // post processing
-    print_stats(verbose, ins, solution, comp_time_ms);
-    make_log(ins, solution, output_name, comp_time_ms, map_name, seed, log_short);
+    log.print_stats(verbose, ins, comp_time_ms);
+    log.make_log(ins, output_name, comp_time_ms, map_name, seed, log_short);
 
     // assign new goals
     nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
