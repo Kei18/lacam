@@ -6,22 +6,37 @@
 Cache::Cache() {};
 Cache::~Cache() {};
 
-int Cache::get_cache_index(Vertex* cargo) {
+int Cache::get_cache_block_in_cache_index(Vertex* block) {
     int cache_index = -1;
 
-    for (int i = 0; i < node_cargo.size(); i++) {
-        if (node_cargo[i] == cargo) {
-            std::cerr << "Cache hit for cargo " << cargo << std::endl;
+    for (int i = 0; i < node_id.size(); i++) {
+        if (node_id[i] == block) {
             cache_index = i;
             break;
         }
     }
 
+    // Cache goals must in cache
+    assert(cache_index != -1);
     return cache_index;
 }
 
-Vertex* Cache::get_cache_cargo(Vertex* cargo) {
-    int cache_index = get_cache_index(cargo);
+int Cache::get_cargo_in_cache_index(Vertex* cargo) {
+    int cargo_index = -1;
+
+    for (int i = 0; i < node_cargo.size(); i++) {
+        if (node_cargo[i] == cargo) {
+            std::cerr << "Cache hit for cargo " << cargo << std::endl;
+            cargo_index = i;
+            break;
+        }
+    }
+
+    return cargo_index;
+}
+
+Vertex* Cache::try_cache_cargo(Vertex* cargo) {
+    int cache_index = get_cargo_in_cache_index(cargo);
 
     // If we can find cargo cached, we go to cache and get it
     if (cache_index != -1) {
@@ -44,7 +59,7 @@ Vertex* Cache::get_cache_cargo(Vertex* cargo) {
 Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     // First, if cargo has already cached, we directly go
     // to unloading port
-    if (get_cache_index(cargo) != -1) return unloading_port;
+    if (get_cargo_in_cache_index(cargo) != -1) return unloading_port;
 
     // Second try to find a empty position to insert cargo
     // TODO: optimization, can set a flag to skip this
@@ -81,11 +96,10 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
 }
 
 bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
-    int cargo_index = get_cache_index(cargo);
-    int cache_index = get_cache_index(cache_node);
+    int cargo_index = get_cargo_in_cache_index(cargo);
+    int cache_index = get_cache_block_in_cache_index(cache_node);
     // We should only update it while it is not in cache
     assert(cargo_index == -1);
-    assert(cache_index != -1);
 
     // Update cache
     std::cerr << "Update cargo " << cargo << " to cache " << cache_node << std::endl;
@@ -97,8 +111,8 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
 }
 
 bool Cache::update_cargo_from_cache(Vertex* cargo, Vertex* cache_node) {
-    int cargo_index = get_cache_index(cargo);
-    int cache_index = get_cache_index(cache_node);
+    int cargo_index = get_cargo_in_cache_index(cargo);
+    int cache_index = get_cache_block_in_cache_index(cache_node);
     assert(cargo_index != -1);
     assert(cache_index != -1);
 
