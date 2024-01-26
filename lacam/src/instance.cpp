@@ -21,7 +21,10 @@ Instance::Instance(const std::string& map_filename, std::mt19937* MT, const int 
   int j = 0;
   while (true) {
     if (j >= K) return;
-    goals.push_back(G.random_target_vertex());
+    Vertex* goal = G.random_target_vertex();
+    goals.push_back(goal);
+    cargo_goals.push_back(goal);
+    bit_status.push_back(0);              // at the begining, the cache is empty
     if (goals.size() == nagents) break;
     ++j;
   }
@@ -45,14 +48,58 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
   for (size_t j = 0; j < vertex_list[step].size(); ++j) {
     // TODO: assign goals to closed free agents
     if ((*vertex_list[step][j] == *goals[j]) && (remain_goals > 0)) {
-      remain_goals--;
-      // Update goals and starts, mark that a vertex has reached
-      if (goals[j] == G.unloading_ports[0]) {
-        goals[j] = G.random_target_vertex();
-        reached_count++;
+      // Status 0 finished, agent has moved to warehouse cargo target
+      if (bit_status[j] == 0) {
+        Vertex* goal = G.cache.try_insert_cache(cargo_goals[j], G.unloading_ports[0]);
+        // Cache full, directly get back to unloading port, -> Status 3
+        if (goal == G.unloading_ports[0]) {
+          bit_status[j] = 3;
+        }
+        // Find empty cache block, go and insert cargo into cache, -> Status 2
+        else {
+          bit_status[j] = 2;
+        }
+
+        // update goal
+        goals[j] = goal;
       }
-      else {
+      // Status 1 finished, agent has moved to cache cargo target
+      // update cache lock info, directly move back to unloading port, -> Status 4
+      else if (bit_status[j] == 1) {
+        G.cache.update_cargo_from_cache(cargo_goals[j], goals[j]);
+        bit_status[j] = 4;
         goals[j] = G.unloading_ports[0];
+      }
+      // Status 2 finished, agent has bring uncached cargo back to cache
+      // update cache, move to unloading port, -> Status 4
+      else if (bit_status[j] == 2) {
+        // update cache
+        assert(G.cache.update_cargo_into_cache(cargo_goals[j], goals[j]));
+        // update status and goal
+        bit_status[j] = 4;
+        goals[j] = G.unloading_ports[0];
+      }
+      // Status 3 finished, agent has back to unloading port, assigned with new cargo target
+      else if (bit_status[j] == 3) {
+        // update statistics
+        remain_goals--;
+        reached_count++;
+
+        // generate new cargo goal
+        Vertex* cargo = G.random_target_vertex();
+        cargo_goals[j] = cargo;
+        Vertex* goal = G.cache.try_cache_cargo(cargo);
+
+        // Cache hit, go to cache to get cached cargo, -> Status 1
+        if (cargo == goal) {
+          bit_status[j] == 1;
+        }
+        // Cache miss, go to warehouse to get cargo, -> Status 0
+        else {
+          bit_status[j] == 0;
+        }
+        // update goal
+        goals[j] = goal;
       }
     }
   }

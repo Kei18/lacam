@@ -8,11 +8,19 @@
 #include "utils.hpp"
 
 struct Instance {
-  Graph G;                  // graph
-  Config starts;            // initial configuration
-  Config goals;             // goal configuration
-  const uint nagents;       // number of agents
-  const uint ngoals;        // number if goals
+  Graph G;                      // graph
+  Config starts;                // initial configuration
+  Config goals;                 // goal configuration, can be in warehouse block/cache block
+  Config cargo_goals;           // cargo goal configuration
+  // Status control: 
+  // 0 -> cache miss, go for warehouse get cargo
+  // 1 -> cache hit, go for cache get cargo
+  // 2 -> warehouse get cargo, find empty block, go back to insert cache
+  // 3 -> warehouse get cargo, cannot find empty block, directly back to unloading port
+  //   -> cache get cargo, go back to unloading port
+  std::vector<uint> bit_status;
+  const uint nagents;           // number of agents
+  const uint ngoals;            // number if goals
 
   Instance(const std::string& map_filename, std::mt19937* MT, const int _nagents = 1, const int _ngoals = 1);
   ~Instance() {}

@@ -1,7 +1,7 @@
 // Cache implementation
 // Author: Zhenghong Yu
 
-#include "cache.hpp"
+#include "../include/cache.hpp"
 
 Cache::Cache() {};
 Cache::~Cache() {};
@@ -9,7 +9,7 @@ Cache::~Cache() {};
 int Cache::get_cache_block_in_cache_index(Vertex* block) {
     int cache_index = -1;
 
-    for (int i = 0; i < node_id.size(); i++) {
+    for (uint i = 0; i < node_id.size(); i++) {
         if (node_id[i] == block) {
             cache_index = i;
             break;
@@ -24,7 +24,7 @@ int Cache::get_cache_block_in_cache_index(Vertex* block) {
 int Cache::get_cargo_in_cache_index(Vertex* cargo) {
     int cargo_index = -1;
 
-    for (int i = 0; i < node_cargo.size(); i++) {
+    for (uint i = 0; i < node_cargo.size(); i++) {
         if (node_cargo[i] == cargo) {
             std::cerr << "Cache hit for cargo " << cargo << std::endl;
             cargo_index = i;
@@ -63,11 +63,11 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
 
     // Second try to find a empty position to insert cargo
     // TODO: optimization, can set a flag to skip this
-    for (int i = 0; i < LRU.size(); i++) {
+    for (uint i = 0; i < LRU.size(); i++) {
         if (LRU[i] == 0) {
             // We reserve this position and update LRU info
             bit_lock[i] += 1;
-            LRU[i] == LRU_cnt++;
+            LRU[i] = LRU_cnt++;
             return node_cargo[i];
         }
     }
@@ -76,7 +76,7 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     int min_value = -1;
     int min_index = -1;
 
-    for (int i = 0; i < LRU.size(); i++) {
+    for (uint i = 0; i < LRU.size(); i++) {
         // If it's not locked and (it's the first element or the smallest so far)
         if (bit_lock[i] == 0 && (min_value == -1 || LRU[i] < min_value)) {
             min_value = LRU[i];

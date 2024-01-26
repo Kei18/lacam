@@ -4,7 +4,7 @@ Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(
 
 CargoVertex::CargoVertex(int _index) : index(_index) {}
 
-Graph::Graph() : V(Vertices()), width(0), height(0) {}
+Graph::Graph() : V(Vertices()), cache(Cache()), width(0), height(0) {}
 Graph::~Graph()
 {
   for (auto& v : V)
@@ -63,9 +63,16 @@ Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertice
         auto v = new Vertex(V.size(), index, width);
         V.push_back(v);
         U[index] = v;
+        // record unloading ports
         if (s == 'U') {
-          // record unloading ports
           unloading_ports.push_back(v);
+        }
+        // record cache area
+        else if (s == 'C') {
+          cache.node_cargo.push_back(v);
+          cache.node_id.push_back(v);
+          cache.LRU.push_back(0);
+          cache.bit_lock.push_back(0);
         }
       }
     }
