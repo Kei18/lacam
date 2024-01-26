@@ -23,15 +23,12 @@ int Cache::get_cache_block_in_cache_index(Vertex* block) {
 
 int Cache::get_cargo_in_cache_index(Vertex* cargo) {
     int cargo_index = -1;
-
     for (uint i = 0; i < node_cargo.size(); i++) {
         if (node_cargo[i] == cargo) {
-            std::cerr << "Cache hit for cargo " << cargo << std::endl;
             cargo_index = i;
             break;
         }
     }
-
     return cargo_index;
 }
 
@@ -40,19 +37,20 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
 
     // If we can find cargo cached, we go to cache and get it
     if (cache_index != -1) {
-        std::cerr << "Agent will go " << node_cargo[cache_index] << " to get cargo " << cargo << std::endl;
+        std::cerr << "Cache hit! Agent will go " << node_cargo[cache_index] << " to get cargo " << *cargo << std::endl;
         // For here, we allow multiple agents lock on this position
         // It is impossible that a coming agent move cargo to this 
         // position while the cargo has already here
         bit_lock[cache_index] += 1;
         // We also update LRU here, since we do not want the cached cargo 
         // been evicted while the agent moving to the cache
-        LRU[cache_index] = LRU_cnt++;
+        LRU_cnt += 1;
+        LRU[cache_index] = LRU_cnt;
         return node_cargo[cache_index];
     }
 
     // If we cannot find cargo cached, we directly go to warehouse
-    std::cerr << "Cache miss! Agent will directly to get cargo " << cargo << std::endl;
+    std::cerr << "Cache miss! Agent will directly to get cargo " << *cargo << std::endl;
     return cargo;
 }
 
@@ -65,9 +63,11 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     // TODO: optimization, can set a flag to skip this
     for (uint i = 0; i < LRU.size(); i++) {
         if (LRU[i] == 0) {
+            std::cerr << "Find an empty cache block with index " << i << " " << *node_id[i] << std::endl;
             // We reserve this position and update LRU info
             bit_lock[i] += 1;
-            LRU[i] = LRU_cnt++;
+            LRU_cnt += 1;
+            LRU[i] = LRU_cnt;
             return node_cargo[i];
         }
     }
@@ -88,7 +88,8 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     if (min_index != -1) {
         // We reserve this position and update LRU info
         bit_lock[min_index] += 1;
-        LRU[min_index] = LRU_cnt++;
+        LRU_cnt += 1;
+        LRU[min_index] = LRU_cnt;
         return node_cargo[min_index];
     }
     // Else we can not insert into cache
@@ -102,7 +103,7 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
     assert(cargo_index == -1);
 
     // Update cache
-    std::cerr << "Update cargo " << cargo << " to cache " << cache_node << std::endl;
+    std::cerr << "Update cargo " << *cargo << " to cache block" << *cache_node << std::endl;
     node_cargo[cache_index] = cargo;
     // Release lock
     bit_lock[cache_index] -= 1;
