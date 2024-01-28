@@ -16,8 +16,10 @@ struct Graph {
   int height;               // grid height
   std::mt19937* randomSeed;
 
-  Graph();
-  Graph(const std::string& filename, std::mt19937* _randomSeed = 0);
+  std::shared_ptr<spdlog::logger> logger;
+
+  Graph(std::shared_ptr<spdlog::logger> _logger);
+  Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, std::mt19937* _randomSeed = 0);
   ~Graph();
 
   int size() const;    // the number of vertices, |V|

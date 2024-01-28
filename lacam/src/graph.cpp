@@ -4,7 +4,7 @@ Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(
 
 CargoVertex::CargoVertex(int _index) : index(_index) {}
 
-Graph::Graph() : V(Vertices()), cache(Cache()), width(0), height(0) {}
+Graph::Graph(std::shared_ptr<spdlog::logger> _logger) : V(Vertices()), cache(Cache(_logger)), width(0), height(0), logger(std::move(_logger)) {}
 Graph::~Graph()
 {
   for (auto& v : V)
@@ -17,7 +17,7 @@ static const std::regex r_height = std::regex(R"(height\s(\d+))");
 static const std::regex r_width = std::regex(R"(width\s(\d+))");
 static const std::regex r_map = std::regex(R"(map)");
 
-Graph::Graph(const std::string& filename, std::mt19937* _randomSeed) : V(Vertices()), width(0), height(0), randomSeed(_randomSeed)
+Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, std::mt19937* _randomSeed) : V(Vertices()), cache(Cache(_logger)), width(0), height(0), randomSeed(_randomSeed), logger(std::move(_logger))
 {
   std::ifstream file(filename);
   if (!file) {

@@ -18,4 +18,6 @@ cmake -B build && make -C build
 
 ## Assumption
 
-1. Assume cargoes 
+1. Assume cargoes in warehouse is infinite
+2. Assume agents can bring infinite cargos back to cache
+3. Assume cargoes which evicted from cache can immediately disappear

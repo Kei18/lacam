@@ -3,7 +3,7 @@
 
 #include "../include/cache.hpp"
 
-Cache::Cache() {};
+Cache::Cache(std::shared_ptr<spdlog::logger> _logger) : logger(std::move(_logger)) {};
 Cache::~Cache() {};
 
 int Cache::get_cache_block_in_cache_index(Vertex* block) {
@@ -35,7 +35,7 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
 
     // If we can find cargo cached, we go to cache and get it
     if (cache_index != -1) {
-        std::cerr << "Cache hit! Agent will go " << node_cargo[cache_index] << " to get cargo " << *cargo << std::endl;
+        logger->debug("Cache hit! Agent will go {} to get cargo {}", *node_id[cache_index], *cargo);
         // For here, we allow multiple agents lock on this position
         // It is impossible that a coming agent move cargo to this 
         // position while the cargo has already here
@@ -44,11 +44,11 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
         // been evicted while the agent moving to the cache
         LRU_cnt += 1;
         LRU[cache_index] = LRU_cnt;
-        return node_cargo[cache_index];
+        return node_id[cache_index];
     }
 
     // If we cannot find cargo cached, we directly go to warehouse
-    std::cerr << "Cache miss! Agent will directly to get cargo " << *cargo << std::endl;
+    logger->debug("Cache miss! Agent will directly to get cargo {}", *cargo);
     return cargo;
 }
 
@@ -61,7 +61,7 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     // TODO: optimization, can set a flag to skip this
     for (uint i = 0; i < LRU.size(); i++) {
         if (LRU[i] == 0) {
-            std::cerr << "Find an empty cache block with index " << i << " " << *node_id[i] << std::endl;
+            logger->debug("Find an empty cache block with index {} {}", i, *node_id[i]);
             // We reserve this position and update LRU info
             bit_lock[i] += 1;
             LRU_cnt += 1;
@@ -101,7 +101,7 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
     assert(cargo_index == -1);
 
     // Update cache
-    std::cerr << "Update cargo " << *cargo << " to cache block" << *cache_node << std::endl;
+    logger->debug("Update cargo {} to cache block {}", *cargo, *cache_node);
     node_cargo[cache_index] = cargo;
     // Release lock
     bit_lock[cache_index] -= 1;
@@ -116,7 +116,7 @@ bool Cache::update_cargo_from_cache(Vertex* cargo, Vertex* cache_node) {
     assert(cache_index != -1);
 
     // Simply release lock
-    std::cerr << "Agents gets " << cargo << "from cache " << cache_node << std::endl;
+    logger->debug("Agents gets {} from cache {}", *cargo, *cache_node);
     bit_lock[cache_index] -= 1;
 
     return true;

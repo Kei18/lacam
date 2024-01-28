@@ -4,7 +4,7 @@
 int main(int argc, char* argv[])
 {
   auto console = spdlog::stderr_color_mt("console");
-  console->set_level(spdlog::level::debug);
+  console->set_level(spdlog::level::info);
 
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
@@ -16,9 +16,13 @@ int main(int argc, char* argv[])
   program.add_argument("-t", "--time_limit_sec").help("time limit sec").default_value(std::string("10"));       // time limit (second)
   program.add_argument("-o", "--output").help("output file").default_value(std::string("./result/result.txt")); // output file
   program.add_argument("-l", "--log_short").default_value(false).implicit_value(true);
+  program.add_argument("-d", "--debug").help("enable debug logging").default_value(false).implicit_value(true); // debug mode
 
   try {
     program.parse_known_args(argc, argv);
+    if (program["--debug"] == true) {
+      console->set_level(spdlog::level::debug);
+    }
   }
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;

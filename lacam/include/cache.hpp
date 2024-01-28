@@ -13,7 +13,9 @@ struct Cache {
     std::vector<uint> bit_lock;
     uint LRU_cnt = 0;
 
-    Cache();
+    std::shared_ptr<spdlog::logger> logger;
+
+    Cache(std::shared_ptr<spdlog::logger> _logger);
     ~Cache();
 
     /**

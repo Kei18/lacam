@@ -1,7 +1,7 @@
 #include "../include/instance.hpp"
 
 Instance::Instance(const std::string& map_filename, std::mt19937* MT, std::shared_ptr<spdlog::logger> _logger, const int _nagents, const int _ngoals)
-  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), nagents(_nagents), ngoals(_ngoals), logger(std::move(_logger))
+  : G(Graph(map_filename, _logger, MT)), starts(Config()), goals(Config()), nagents(_nagents), ngoals(_ngoals), logger(std::move(_logger))
 {
   const auto K = G.size();
 
@@ -97,7 +97,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
 
         // Cache hit, go to cache to get cached cargo, -> Status 1
         if (cargo != goal) {
-          logger->debug("Agent {} assigned with new cargo {}, cache hit. Go to cache, status 3 -> status 1 {}", j, *cargo_goals[j], *goal);
+          logger->info("Agent {} assigned with new cargo {}, cache hit. Go to cache {}, status 3 -> status 1", j, *cargo_goals[j], *goal);
           bit_status[j] = 1;
         }
         // Cache miss, go to warehouse to get cargo, -> Status 0
@@ -112,6 +112,6 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
   }
 
   starts = vertex_list[step];
-  std::cerr << "Ends: " << starts << std::endl;
+  logger->debug("Ends: {}", starts);
   return reached_count;
 }
