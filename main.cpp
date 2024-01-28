@@ -3,6 +3,9 @@
 
 int main(int argc, char* argv[])
 {
+  auto console = spdlog::stderr_color_mt("console");
+  console->set_level(spdlog::level::debug);
+
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();                                              // map file
@@ -34,7 +37,7 @@ int main(int argc, char* argv[])
   const auto log_short = program.get<bool>("log_short");
   const auto ngoals = std::stoi(program.get<std::string>("ngoals"));
   const auto nagents = std::stoi(program.get<std::string>("nagents"));
-  auto ins = Instance(map_name, &MT, nagents, ngoals);
+  auto ins = Instance(map_name, &MT, console, nagents, ngoals);
 
   // check paras
   if (!ins.is_valid(1)) {
@@ -54,10 +57,10 @@ int main(int argc, char* argv[])
   int step = 1;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
     // ternimal log
-    std::cerr << "------------------------------------" << std::endl;
-    std::cerr << "STEP " << step << std::endl;
-    std::cerr << "Starts: " << ins.starts << std::endl;
-    std::cerr << "Goals: " << ins.goals << std::endl;
+    console->debug("------------------------------------");
+    console->debug("STEP {}", step);
+    console->debug("Starts: {}", ins.starts);
+    console->debug("Goals: {}", ins.goals);
 
     // statistics
     step++;
@@ -67,19 +70,19 @@ int main(int argc, char* argv[])
 
     // failure
     if (solution.empty()) {
-      info(1, verbose, "failed to solve");
+      console->critical("failed to solve");
       return 1;
     }
 
     // update step solution
     if (!log.update_solution(solution)) {
-      std::cerr << "Update step solution fails!" << std::endl;
+      console->critical("Update step solution fails!");
       return 1;
     }
 
     // check feasibility
     if (!log.is_feasible_solution(ins, verbose)) {
-      info(0, verbose, "invalid solution");
+      console->critical("invalid solution");
       return 1;
     }
 
@@ -89,7 +92,7 @@ int main(int argc, char* argv[])
 
     // assign new goals
     nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
-    std::cerr << "Reached Goals: " << nagents_with_new_goals << std::endl;
+    console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
   log.make_life_long_log(ins, seed);

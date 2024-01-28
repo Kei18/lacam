@@ -22,7 +22,9 @@ struct Instance {
   const uint nagents;           // number of agents
   const uint ngoals;            // number if goals
 
-  Instance(const std::string& map_filename, std::mt19937* MT, const int _nagents = 1, const int _ngoals = 1);
+  std::shared_ptr<spdlog::logger> logger;
+
+  Instance(const std::string& map_filename, std::mt19937* MT, std::shared_ptr<spdlog::logger> _logger, const int _nagents = 1, const int _ngoals = 1);
   ~Instance() {}
 
   // simple feasibility check of instance

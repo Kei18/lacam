@@ -8,14 +8,12 @@ Cache::~Cache() {};
 
 int Cache::get_cache_block_in_cache_index(Vertex* block) {
     int cache_index = -1;
-
     for (uint i = 0; i < node_id.size(); i++) {
         if (node_id[i] == block) {
             cache_index = i;
             break;
         }
     }
-
     // Cache goals must in cache
     assert(cache_index != -1);
     return cache_index;
@@ -68,7 +66,7 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
             bit_lock[i] += 1;
             LRU_cnt += 1;
             LRU[i] = LRU_cnt;
-            return node_cargo[i];
+            return node_id[i];
         }
     }
 
@@ -90,7 +88,7 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
         bit_lock[min_index] += 1;
         LRU_cnt += 1;
         LRU[min_index] = LRU_cnt;
-        return node_cargo[min_index];
+        return node_id[min_index];
     }
     // Else we can not insert into cache
     else return unloading_port;

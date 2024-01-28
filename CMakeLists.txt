@@ -7,9 +7,11 @@ add_subdirectory(./lacam)
 add_subdirectory(./third_party/argparse)
 add_subdirectory(./third_party/googletest)
 
+find_package(spdlog REQUIRED)
+
 add_executable(main main.cpp)
 target_compile_features(main PUBLIC cxx_std_17)
-target_link_libraries(main lacam argparse)
+target_link_libraries(main lacam argparse spdlog::spdlog)
 
 # test
 # set(TEST_MAIN_FUNC ./third_party/googletest/googletest/src/gtest_main.cc)

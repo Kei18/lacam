@@ -1,7 +1,7 @@
 #include "../include/instance.hpp"
 
-Instance::Instance(const std::string& map_filename, std::mt19937* MT, const int _nagents, const int _ngoals)
-  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), nagents(_nagents), ngoals(_ngoals)
+Instance::Instance(const std::string& map_filename, std::mt19937* MT, std::shared_ptr<spdlog::logger> _logger, const int _nagents, const int _ngoals)
+  : G(Graph(map_filename, MT)), starts(Config()), goals(Config()), nagents(_nagents), ngoals(_ngoals), logger(std::move(_logger))
 {
   const auto K = G.size();
 
@@ -40,7 +40,7 @@ bool Instance::is_valid(const int verbose) const
 }
 
 int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals) {
-  std::cerr << "Remain goals: " << remain_goals << std::endl;
+  logger->debug("Remain goals: {}", remain_goals);
   int step = vertex_list.size() - 1;
   int reached_count = 0;
 
@@ -53,12 +53,12 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
         Vertex* goal = G.cache.try_insert_cache(cargo_goals[j], G.unloading_ports[0]);
         // Cache full, directly get back to unloading port, -> Status 3
         if (goal == G.unloading_ports[0]) {
-          std::cerr << "Agent " << j << " status 0 -> status 3, reach warehouse cargo " << *cargo_goals[j] << ", cache is full, go back to unloading port" << std::endl;
+          logger->debug("Agent {} status 0 -> status 3, reach warehouse cargo {}, cache is full, go back to unloading port", j, *cargo_goals[j]);
           bit_status[j] = 3;
         }
         // Find empty cache block, go and insert cargo into cache, -> Status 2
         else {
-          std::cerr << "Agent " << j << " status 0 -> status 2, reach warehouse cargo " << *cargo_goals[j] << ", find cache block to insert, go to cache block " << *goal << std::endl;
+          logger->debug("Agent {} status 0 -> status 2, reach warehouse cargo {}, find cache block to insert, go to cache block {}", j, *cargo_goals[j], *goal);
           bit_status[j] = 2;
         }
 
@@ -68,7 +68,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
       // Status 1 finished, agent has moved to cache cargo target
       // update cache lock info, directly move back to unloading port, -> Status 3
       else if (bit_status[j] == 1) {
-        std::cerr << "Agent " << j << " status 1 -> status 3, reach cached cargo " << *cargo_goals[j] << " at cache block " << *goals[j] << ", return to unloading port" << std::endl;
+        logger->debug("Agent {} status 1 -> status 3, reach cached cargo {} at cache block {}, return to unloading port", j, *cargo_goals[j], *goals[j]);
         bit_status[j] = 3;
         G.cache.update_cargo_from_cache(cargo_goals[j], goals[j]);
         goals[j] = G.unloading_ports[0];
@@ -76,7 +76,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
       // Status 2 finished, agent has bring uncached cargo back to cache
       // update cache, move to unloading port, -> Status 3
       else if (bit_status[j] == 2) {
-        std::cerr << "Agent " << j << " status 2 -> status 3, bring cargo " << *cargo_goals[j] << " to cache block " << *goals[j] << ", then return to unloading port" << std::endl;
+        logger->debug("Agent {} status 2 -> status 3, bring cargo {} to cache block {}, then return to unloading port", j, *cargo_goals[j], *goals[j]);
         bit_status[j] = 3;
         // update cache
         assert(G.cache.update_cargo_into_cache(cargo_goals[j], goals[j]));
@@ -89,7 +89,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
         remain_goals--;
         reached_count++;
 
-        std::cerr << "Agent " << j << " has bring cargo " << *cargo_goals[j] << " to unloading port" << std::endl;
+        logger->debug("Agent {} has bring cargo {} to unloading port", j, *cargo_goals[j]);
         // generate new cargo goal
         Vertex* cargo = G.random_target_vertex();
         cargo_goals[j] = cargo;
@@ -97,12 +97,12 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
 
         // Cache hit, go to cache to get cached cargo, -> Status 1
         if (cargo != goal) {
-          std::cerr << "Agent " << j << " assigned with new cargo " << *cargo_goals[j] << ", cache hit. Go to cache, status 3 -> status 1" << *goal << std::endl;
+          logger->debug("Agent {} assigned with new cargo {}, cache hit. Go to cache, status 3 -> status 1 {}", j, *cargo_goals[j], *goal);
           bit_status[j] = 1;
         }
         // Cache miss, go to warehouse to get cargo, -> Status 0
         else {
-          std::cerr << "Agent " << j << " assigned with new cargo " << *cargo_goals[j] << ", cache miss. Go to warehouse, status 3 -> status 0" << std::endl;
+          logger->debug("Agent {} assigned with new cargo {}, cache miss. Go to warehouse, status 3 -> status 0", j, *cargo_goals[j]);
           bit_status[j] = 0;
         }
         // update goal

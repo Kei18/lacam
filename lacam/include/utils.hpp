@@ -18,6 +18,15 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <fmt/core.h>
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+
+#ifdef DEBUG
+#define DEBUG_LOG(x) std::cerr << x << std::endl
+#else
+#define DEBUG_LOG(x) 
+#endif
 
 using Time = std::chrono::steady_clock;
 
@@ -96,3 +105,42 @@ inline std::ostream& operator<<(std::ostream& os, const Config& config) {
   os << "]";
   return os;
 }
+
+template <>
+struct fmt::formatter<Vertex> {
+  // Parses format specifications of the form ['f' | 'e'], which are not used in this example
+  constexpr auto parse(fmt::format_parse_context& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const Vertex& v, FormatContext& ctx) {
+    std::ostringstream oss;
+    oss << v;  // Utilizing the existing operator<< overload
+    return fmt::format_to(ctx.out(), "{}", oss.str());
+  }
+};
+
+template <>
+struct fmt::formatter<std::vector<Vertex*>> {
+  template <typename ParseContext>
+  constexpr auto parse(ParseContext& ctx) {
+    return ctx.begin();
+  }
+
+  template <typename FormatContext>
+  auto format(const std::vector<Vertex*>& vec, FormatContext& ctx) {
+    fmt::memory_buffer out;
+    for (const auto& elem : vec) {
+      if (elem != nullptr) {
+        std::ostringstream oss;
+        oss << *elem;  // Use the overloaded << operator for Vertex
+        fmt::format_to(std::back_inserter(out), "{} ", oss.str());
+      }
+      else {
+        fmt::format_to(std::back_inserter(out), "null ");
+      }
+    }
+    return fmt::format_to(ctx.out(), "{}", to_string(out));
+  }
+};
