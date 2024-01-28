@@ -50,17 +50,17 @@ int main(int argc, char* argv[])
   }
 
   // initliaze log system
-  Log log;
+  Log log(console);
 
   // solving
   int nagents_with_new_goals = 0;
   int step = 1;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
     // ternimal log
-    console->debug("------------------------------------");
+    console->debug("-----------------------------------------------------------------------------------");
     console->debug("STEP {}", step);
-    console->debug("Starts: {}", ins.starts);
-    console->debug("Goals: {}", ins.goals);
+    console->debug("STARTS: {}", ins.starts);
+    console->debug("GOALS: {}", ins.goals);
 
     // statistics
     step++;

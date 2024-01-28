@@ -9,8 +9,9 @@
 struct Log {
     Solution step_solution;
     Solution life_long_solution;
+    std::shared_ptr<spdlog::logger> logger;
 
-    Log();
+    Log(std::shared_ptr<spdlog::logger> _logger);
     ~Log();
 
     bool update_solution(Solution& solution);

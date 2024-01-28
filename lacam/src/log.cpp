@@ -1,7 +1,7 @@
 #include "../include/log.hpp"
 #include "../include/dist_table.hpp"
 
-Log::Log() {}
+Log::Log(std::shared_ptr<spdlog::logger> _logger) : logger(std::move(_logger)) {}
 Log::~Log() {}
 
 bool Log::update_solution(Solution& solution) {
@@ -123,8 +123,7 @@ int Log::get_sum_of_costs_lower_bound(const Instance& ins, DistTable& dist_table
   return c;
 }
 
-void Log::print_stats(const int verbose, const Instance& ins, const double comp_time_ms)
-{
+void Log::print_stats(const int verbose, const Instance& ins, const double comp_time_ms) {
   auto ceil = [](float x) { return std::ceil(x * 100) / 100; };
   auto dist_table = DistTable(ins);
   const auto makespan = get_makespan();
@@ -132,12 +131,18 @@ void Log::print_stats(const int verbose, const Instance& ins, const double comp_
   const auto sum_of_costs = get_sum_of_costs();
   const auto sum_of_costs_lb = get_sum_of_costs_lower_bound(ins, dist_table);
   const auto sum_of_loss = get_sum_of_loss();
-  info(1, verbose, "solved: ", comp_time_ms, "ms", "\tmakespan: ", makespan,
-    " (lb=", makespan_lb, ", ub=", ceil((float)makespan / makespan_lb), ")",
-    "\tsum_of_costs: ", sum_of_costs, " (lb=", sum_of_costs_lb,
-    ", ub=", ceil((float)sum_of_costs / sum_of_costs_lb), ")",
-    "\tsum_of_loss: ", sum_of_loss, " (lb=", sum_of_costs_lb,
-    ", ub=", ceil((float)sum_of_loss / sum_of_costs_lb), ")");
+
+  logger->debug("solved: {} ms\tmakespan: {} (lb={}, ub={})\tsum_of_costs: {} (lb={}, ub={})\tsum_of_loss: {} (lb={}, ub={})",
+    comp_time_ms,
+    makespan,
+    makespan_lb,
+    ceil(static_cast<float>(makespan) / makespan_lb),
+    sum_of_costs,
+    sum_of_costs_lb,
+    ceil(static_cast<float>(sum_of_costs) / sum_of_costs_lb),
+    sum_of_loss,
+    sum_of_costs_lb,
+    ceil(static_cast<float>(sum_of_loss) / sum_of_costs_lb));
 }
 
 // for log of map_name
