@@ -31,7 +31,7 @@ struct Instance {
   bool is_valid(const int verbose = 0) const;
 
   // check first batch of agents reach goals
-  int update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals);
+  uint update_on_reaching_goals(std::vector<Config>& vertex_list, int remain_goals, uint& cache_access, uint& cache_hit);
 };
 
 // solution: a sequence of configurations

@@ -100,7 +100,7 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
     assert(cache_index != -1);
 
     if (bit_lock[cache_index] != 0) {
-        logger->info("Another agent reserve cargos of this cache block while this agent bring cargos from warehouse move to here!");
+        logger->debug("Another agent reserve cargos of this cache block while this agent bring cargos from warehouse move to here!");
         return false;
     }
     else {

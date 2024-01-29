@@ -1,4 +1,5 @@
 #include <argparse/argparse.hpp>
+#include <chrono> 
 #include <lacam.hpp>
 
 int main(int argc, char* argv[])
@@ -65,19 +66,31 @@ int main(int argc, char* argv[])
 
   // initliaze log system
   Log log(console);
+  // initliaze info timer
+  auto timer = std::chrono::steady_clock::now();
 
   // solving
-  int nagents_with_new_goals = 0;
-  int step = 1;
+  uint nagents_with_new_goals = 0;
+  uint step = 1;
+  uint cache_hit = 0;
+  uint cache_access = 0;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
+    // info output
+    auto current_time = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::seconds>(current_time - timer).count();
+
+    if (!debug && elapsed_time >= 1 && cache_access > 0) {
+      double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
+      console->info("Elapsed Time: 1 second   |   Goals Reached: {:5}   |   Cache Rate: {:.2f}%    |   Steps Used: {:5}", i, cacheRate, step);
+      // Reset the timer
+      timer = std::chrono::steady_clock::now();
+    }
+
     // ternimal log
     console->debug("--------------------------------------------------------------------------------------------------------------");
     console->debug("STEP:   {}", step);
     console->debug("STARTS: {}", ins.starts);
     console->debug("GOALS:  {}", ins.goals);
-
-    // statistics
-    step++;
 
     // reset time clock
     assert(deadline.reset());
@@ -103,12 +116,15 @@ int main(int argc, char* argv[])
       return 1;
     }
 
+    // statistics
+    step += solution.size();
+
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
     log.make_step_log(ins, output_name, comp_time_ms, map_name, seed, log_short);
 
     // assign new goals
-    nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i);
+    nagents_with_new_goals = ins.update_on_reaching_goals(solution, ngoals - i, cache_access, cache_hit);
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
