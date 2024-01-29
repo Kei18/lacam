@@ -63,7 +63,6 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
         if (LRU[i] == 0) {
             logger->debug("Find an empty cache block with index {} {}", i, *node_id[i]);
             // We reserve this position and update LRU info
-            bit_lock[i] += 1;
             LRU_cnt += 1;
             LRU[i] = LRU_cnt;
             return node_id[i];
@@ -85,7 +84,6 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     // If we can find one, return the posititon
     if (min_index != -1) {
         // We reserve this position and update LRU info
-        bit_lock[min_index] += 1;
         LRU_cnt += 1;
         LRU[min_index] = LRU_cnt;
         return node_id[min_index];
@@ -103,8 +101,6 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
     // Update cache
     logger->debug("Update cargo {} to cache block {}", *cargo, *cache_node);
     node_cargo[cache_index] = cargo;
-    // Release lock
-    bit_lock[cache_index] -= 1;
 
     return true;
 }

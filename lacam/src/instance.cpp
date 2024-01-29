@@ -82,6 +82,16 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
         assert(G.cache.update_cargo_into_cache(cargo_goals[j], goals[j]));
         // update status and goal
         goals[j] = G.unloading_ports[0];
+
+        // Avoid depulicate cargos insert to cache
+        for (size_t i = 0; i < vertex_list[step].size(); ++i) {
+          if (i == j) continue;
+          if ((bit_status[i] == 2) && (cargo_goals[i] == cargo_goals[j])) {
+            logger->info("Agent {} has same cache missed cargo target with agent {}, stop go to cache and directly go to unloading port", i, j);
+            bit_status[i] = 3;
+            goals[i] = G.unloading_ports[0];
+          }
+        }
       }
       // Status 3 finished, agent has back to unloading port, assigned with new cargo target
       else if (bit_status[j] == 3) {
