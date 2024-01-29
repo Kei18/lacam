@@ -137,7 +137,6 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
       }
     }
   }
-
 }
 
 int Graph::size() const { return V.size(); }

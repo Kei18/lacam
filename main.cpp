@@ -20,9 +20,6 @@ int main(int argc, char* argv[])
 
   try {
     program.parse_known_args(argc, argv);
-    if (program["--debug"] == true) {
-      console->set_level(spdlog::level::debug);
-    }
   }
   catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
@@ -41,17 +38,30 @@ int main(int argc, char* argv[])
   const auto log_short = program.get<bool>("log_short");
   const auto ngoals = std::stoi(program.get<std::string>("ngoals"));
   const auto nagents = std::stoi(program.get<std::string>("nagents"));
+  const auto debug = program.get<bool>("debug");
+  if (debug)  console->set_level(spdlog::level::debug);
   auto ins = Instance(map_name, &MT, console, nagents, ngoals);
 
   // check paras
   if (!ins.is_valid(1)) {
-    std::cerr << "instance is invalid!" << std::endl;
+    console->error("instance is invalid!");
     return 1;
   }
   if (nagents > ngoals) {
-    std::cerr << "number of goals must larger or equal to number of agents" << std::endl;
+    console->error("number of goals must larger or equal to number of agents");
     return 1;
   }
+
+  // output arguments info
+  console->info("Map file:         {}", map_name);
+  console->info("Number of goals:  {}", ngoals);
+  console->info("Number of agents: {}", nagents);
+  console->info("Seed:             {}", seed);
+  console->info("Verbose:          {}", verbose);
+  console->info("Time limit (sec): {}", time_limit_sec);
+  console->info("Output file:      {}", output_name);
+  console->info("Log short:        {}", log_short);
+  console->info("Debug:            {}", debug);
 
   // initliaze log system
   Log log(console);
@@ -62,9 +72,9 @@ int main(int argc, char* argv[])
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
     // ternimal log
     console->debug("-----------------------------------------------------------------------------------");
-    console->debug("STEP {}", step);
+    console->debug("STEP:   {}", step);
     console->debug("STARTS: {}", ins.starts);
-    console->debug("GOALS: {}", ins.goals);
+    console->debug("GOALS:  {}", ins.goals);
 
     // statistics
     step++;
@@ -74,19 +84,19 @@ int main(int argc, char* argv[])
 
     // failure
     if (solution.empty()) {
-      console->critical("failed to solve");
+      console->error("failed to solve");
       return 1;
     }
 
     // update step solution
     if (!log.update_solution(solution)) {
-      console->critical("Update step solution fails!");
+      console->error("Update step solution fails!");
       return 1;
     }
 
     // check feasibility
     if (!log.is_feasible_solution(ins, verbose)) {
-      console->critical("invalid solution");
+      console->error("invalid solution");
       return 1;
     }
 

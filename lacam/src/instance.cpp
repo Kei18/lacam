@@ -97,7 +97,7 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
 
         // Cache hit, go to cache to get cached cargo, -> Status 1
         if (cargo != goal) {
-          logger->info("Agent {} assigned with new cargo {}, cache hit. Go to cache {}, status 3 -> status 1", j, *cargo_goals[j], *goal);
+          logger->debug("Agent {} assigned with new cargo {}, cache hit. Go to cache {}, status 3 -> status 1", j, *cargo_goals[j], *goal);
           bit_status[j] = 1;
         }
         // Cache miss, go to warehouse to get cargo, -> Status 0
