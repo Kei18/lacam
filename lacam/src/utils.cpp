@@ -7,6 +7,11 @@ Deadline::Deadline(double _time_limit_ms)
 {
 }
 
+bool Deadline::reset() {
+  t_s = Time::now();
+  return true;
+}
+
 double Deadline::elapsed_ms() const
 {
   return std::chrono::duration_cast<std::chrono::milliseconds>(Time::now() -

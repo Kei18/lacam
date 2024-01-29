@@ -30,7 +30,7 @@ int main(int argc, char* argv[])
   // setup instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
   const auto time_limit_sec = std::stoi(program.get<std::string>("time_limit_sec"));
-  const auto deadline = Deadline(time_limit_sec * 1000);
+  auto deadline = Deadline(time_limit_sec * 1000);
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
   const auto map_name = program.get<std::string>("map");
@@ -71,13 +71,16 @@ int main(int argc, char* argv[])
   int step = 1;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
     // ternimal log
-    console->debug("-----------------------------------------------------------------------------------");
+    console->debug("--------------------------------------------------------------------------------------------------------------");
     console->debug("STEP:   {}", step);
     console->debug("STARTS: {}", ins.starts);
     console->debug("GOALS:  {}", ins.goals);
 
     // statistics
     step++;
+
+    // reset time clock
+    assert(deadline.reset());
 
     auto solution = solve(ins, verbose - 1, &deadline, &MT);
     const auto comp_time_ms = deadline.elapsed_ms();
