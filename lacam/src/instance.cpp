@@ -76,21 +76,37 @@ int Instance::update_on_reaching_goals(std::vector<Config>& vertex_list, int rem
       // Status 2 finished, agent has bring uncached cargo back to cache
       // update cache, move to unloading port, -> Status 3
       else if (bit_status[j] == 2) {
-        logger->debug("Agent {} status 2 -> status 3, bring cargo {} to cache block {}, then return to unloading port", j, *cargo_goals[j], *goals[j]);
-        bit_status[j] = 3;
-        // update cache
-        assert(G.cache.update_cargo_into_cache(cargo_goals[j], goals[j]));
-        // update status and goal
-        goals[j] = G.unloading_ports[0];
+        if (G.cache.update_cargo_into_cache(cargo_goals[j], goals[j])) {
+          logger->debug("Agent {} status 2 -> status 3, bring cargo {} to cache block {}, then return to unloading port", j, *cargo_goals[j], *goals[j]);
+          bit_status[j] = 3;
+          // update status and goal
+          goals[j] = G.unloading_ports[0];
 
-        // Avoid depulicate cargos insert to cache
-        for (size_t i = 0; i < vertex_list[step].size(); ++i) {
-          if (i == j) continue;
-          if ((bit_status[i] == 2) && (cargo_goals[i] == cargo_goals[j])) {
-            logger->info("Agent {} has same cache missed cargo target with agent {}, stop go to cache and directly go to unloading port", i, j);
-            bit_status[i] = 3;
-            goals[i] = G.unloading_ports[0];
+          // Avoid depulicate cargos insert to cache
+          for (size_t i = 0; i < vertex_list[step].size(); ++i) {
+            if (i == j) continue;
+            if ((bit_status[i] == 2) && (cargo_goals[i] == cargo_goals[j])) {
+              logger->info("Agent {} has same cache missed cargo target with agent {}, stop go to cache and directly go to unloading port", i, j);
+              bit_status[i] = 3;
+              goals[i] = G.unloading_ports[0];
+            }
           }
+        }
+        else {
+          // The cache position is locked while moving
+          Vertex* goal = G.cache.try_insert_cache(cargo_goals[j], G.unloading_ports[0]);
+          // Cache full, directly get back to unloading port, -> Status 3
+          if (goal == G.unloading_ports[0]) {
+            logger->info("Agent {} status 2 -> status 3, reach cache block {}, but original cache block is locked, and cache is full, go back to unloading port", j, *goals[j]);
+            bit_status[j] = 3;
+          }
+          // Find empty cache block, go and insert cargo into cache, -> Status 2
+          else {
+            logger->info("Agent {} status 2 -> status 2, reach cache block {}, but original cache block is locked, find another cache block to insert, go to cache block {}", j, *goals[j], *goal);
+            bit_status[j] = 2;
+          }
+          // update goal
+          goals[j] = goal;
         }
       }
       // Status 3 finished, agent has back to unloading port, assigned with new cargo target

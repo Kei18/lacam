@@ -97,12 +97,18 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
     int cache_index = get_cache_block_in_cache_index(cache_node);
     // We should only update it while it is not in cache
     assert(cargo_index == -1);
+    assert(cache_index != -1);
 
-    // Update cache
-    logger->debug("Update cargo {} to cache block {}", *cargo, *cache_node);
-    node_cargo[cache_index] = cargo;
-
-    return true;
+    if (bit_lock[cache_index] != 0) {
+        logger->info("Another agent reserve cargos of this cache block while this agent bring cargos from warehouse move to here!");
+        return false;
+    }
+    else {
+        // Update cache
+        logger->debug("Update cargo {} to cache block {}", *cargo, *cache_node);
+        node_cargo[cache_index] = cargo;
+        return true;
+    }
 }
 
 bool Cache::update_cargo_from_cache(Vertex* cargo, Vertex* cache_node) {
