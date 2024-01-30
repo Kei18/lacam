@@ -68,13 +68,8 @@ int main(int argc, char* argv[])
   const auto nagents = std::stoi(program.get<std::string>("nagents"));
   const auto debug = program.get<bool>("debug");
   if (debug) console->set_level(spdlog::level::debug);
-  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, nagents, ngoals);
 
   // check paras
-  if (!ins.is_valid(1)) {
-    console->error("instance is invalid!");
-    return 1;
-  }
   if (nagents > ngoals) {
     console->error("number of goals must larger or equal to number of agents");
     return 1;
@@ -90,6 +85,13 @@ int main(int argc, char* argv[])
   console->info("Output file:      {}", output_name);
   console->info("Log short:        {}", log_short);
   console->info("Debug:            {}", debug);
+
+  // generating instance
+  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, nagents, ngoals);
+  if (!ins.is_valid(1)) {
+    console->error("instance is invalid!");
+    return 1;
+  }
 
   // initliaze log system
   Log log(console);
