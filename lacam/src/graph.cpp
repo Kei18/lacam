@@ -4,7 +4,6 @@ Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(
 
 CargoVertex::CargoVertex(int _index) : index(_index) {}
 
-Graph::Graph(std::shared_ptr<spdlog::logger> _logger) : V(Vertices()), cache(Cache(_logger)), width(0), height(0), logger(std::move(_logger)) {}
 Graph::~Graph()
 {
   for (auto& v : V)
@@ -54,7 +53,7 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
         // record cargoes
         auto index = width * y + x;
         auto v = new CargoVertex(index);
-        C.push_back(v);
+        cargo_vertices.push_back(v);
       }
       else {
         // record roads
@@ -113,27 +112,27 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
   // cargo point to be access but not pass by
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      auto c = C[width * y + x];
+      auto c = cargo_vertices[width * y + x];
       if (c == nullptr) continue;
       // left
       if (x > 0) {
         auto u = U[width * y + (x - 1)];
-        if (u != nullptr) G.insert(u);
+        if (u != nullptr) goals_candidate.insert(u);
       }
       // right
       if (x < width - 1) {
         auto u = U[width * y + (x + 1)];
-        if (u != nullptr) G.insert(u);
+        if (u != nullptr) goals_candidate.insert(u);
       }
       // up
       if (y < height - 1) {
         auto u = U[width * (y + 1) + x];
-        if (u != nullptr) G.insert(u);
+        if (u != nullptr) goals_candidate.insert(u);
       }
       // down 
       if (y > 0) {
         auto u = U[width * (y - 1) + x];
-        if (u != nullptr) G.insert(u);
+        if (u != nullptr) goals_candidate.insert(u);
       }
     }
   }
@@ -142,12 +141,12 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
 int Graph::size() const { return V.size(); }
 
 Vertex* Graph::random_target_vertex() {
-  if (G.empty()) {
+  if (goals_candidate.empty()) {
     return nullptr;  // Return nullptr if the set is empty
   }
 
-  int index = get_random_int(randomSeed, 0, G.size() - 1);
-  auto it = G.begin();
+  int index = get_random_int(randomSeed, 0, goals_candidate.size() - 1);
+  auto it = goals_candidate.begin();
   std::advance(it, index);
 
   return *it;

@@ -6,19 +6,20 @@
 #include "cache.hpp"
 
 struct Graph {
-  Vertices V;               // without nullptr
-  Vertices U;               // with nullptr, i.e., |U| = width * height
-  Vertices unloading_ports; // unloading port
-  Cache cache;              // cache
-  CargoVertices C;
-  TargetVertices G;         // with nullptr, goal candidate
-  int width;                // grid width
-  int height;               // grid height
+  Vertices V;                             // without nullptr
+  Vertices U;                             // with nullptr, i.e., |U| = width * height
+  Vertices unloading_ports;               // unloading port
+  Cache cache;                            // cache
+  CargoVertices cargo_vertices;
+  TargetVertices goals_candidate;         // with nullptr, goal candidate
+  Vertices goals_list;                    // goals list: length [ngoals], maximum [k] different goals in any [m] length sublist 
+
+  int width;                              // grid width
+  int height;                             // grid height
   std::mt19937* randomSeed;
 
   std::shared_ptr<spdlog::logger> logger;
 
-  Graph(std::shared_ptr<spdlog::logger> _logger);
   Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, std::mt19937* _randomSeed = 0);
   ~Graph();
 
