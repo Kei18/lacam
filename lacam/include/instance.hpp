@@ -26,8 +26,8 @@ struct Instance {
   std::shared_ptr<spdlog::logger> logger;
 
   Instance(const std::string& map_filename, std::mt19937* MT,
-           std::shared_ptr<spdlog::logger> _logger, const int _nagents = 1,
-           const int _ngoals = 1);
+    std::shared_ptr<spdlog::logger> _logger, const int _nagents = 1,
+    const int _ngoals = 1);
   ~Instance() {}
 
   // simple feasibility check of instance
@@ -35,8 +35,8 @@ struct Instance {
 
   // check first batch of agents reach goals
   uint update_on_reaching_goals(std::vector<Config>& vertex_list,
-                                int remain_goals, uint& cache_access,
-                                uint& cache_hit);
+    int remain_goals, uint& cache_access,
+    uint& cache_hit);
 };
 
 // solution: a sequence of configurations

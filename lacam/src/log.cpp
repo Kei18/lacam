@@ -15,9 +15,10 @@ bool Log::update_solution(Solution& solution)
   // Update life long solution
   if (life_long_solution.empty()) {
     life_long_solution = step_solution;
-  } else {
+  }
+  else {
     life_long_solution.insert(life_long_solution.end(),
-                              step_solution.begin() + 1, step_solution.end());
+      step_solution.begin() + 1, step_solution.end());
   }
   return true;
 }
@@ -43,8 +44,8 @@ bool Log::is_feasible_solution(const Instance& ins, const int verbose)
       auto v_i_to = step_solution[t][i];
       // check connectivity
       if (v_i_from != v_i_to &&
-          std::find(v_i_to->neighbor.begin(), v_i_to->neighbor.end(),
-                    v_i_from) == v_i_to->neighbor.end()) {
+        std::find(v_i_to->neighbor.begin(), v_i_to->neighbor.end(),
+          v_i_from) == v_i_to->neighbor.end()) {
         info(1, verbose, "invalid move");
         return false;
       }
@@ -119,7 +120,7 @@ int Log::get_makespan_lower_bound(const Instance& ins, DistTable& dist_table)
 }
 
 int Log::get_sum_of_costs_lower_bound(const Instance& ins,
-                                      DistTable& dist_table)
+  DistTable& dist_table)
 {
   int c = 0;
   for (size_t i = 0; i < ins.nagents; ++i) {
@@ -129,7 +130,7 @@ int Log::get_sum_of_costs_lower_bound(const Instance& ins,
 }
 
 void Log::print_stats(const int verbose, const Instance& ins,
-                      const double comp_time_ms)
+  const double comp_time_ms)
 {
   auto ceil = [](float x) { return std::ceil(x * 100) / 100; };
   auto dist_table = DistTable(ins);
@@ -140,27 +141,27 @@ void Log::print_stats(const int verbose, const Instance& ins,
   const auto sum_of_loss = get_sum_of_loss();
 
   logger->debug(
-      "solved: {} ms\tmakespan: {} (lb={}, ub={})\tsum_of_costs: {} (lb={}, "
-      "ub={})\tsum_of_loss: {} (lb={}, ub={})",
-      comp_time_ms, makespan, makespan_lb,
-      ceil(static_cast<float>(makespan) / makespan_lb), sum_of_costs,
-      sum_of_costs_lb, ceil(static_cast<float>(sum_of_costs) / sum_of_costs_lb),
-      sum_of_loss, sum_of_costs_lb,
-      ceil(static_cast<float>(sum_of_loss) / sum_of_costs_lb));
+    "solved: {} ms\tmakespan: {} (lb={}, ub={})\tsum_of_costs: {} (lb={}, "
+    "ub={})\tsum_of_loss: {} (lb={}, ub={})",
+    comp_time_ms, makespan, makespan_lb,
+    ceil(static_cast<float>(makespan) / makespan_lb), sum_of_costs,
+    sum_of_costs_lb, ceil(static_cast<float>(sum_of_costs) / sum_of_costs_lb),
+    sum_of_loss, sum_of_costs_lb,
+    ceil(static_cast<float>(sum_of_loss) / sum_of_costs_lb));
 }
 
 // for log of map_name
 static const std::regex r_map_name = std::regex(R"(.+/(.+))");
 
 void Log::make_step_log(const Instance& ins, const std::string& output_name,
-                        const double comp_time_ms, const std::string& map_name,
-                        const int seed, const bool log_short)
+  const double comp_time_ms, const std::string& map_name,
+  const int seed, const bool log_short)
 {
   // map name
   std::smatch results;
   const auto map_recorded_name =
-      (std::regex_match(map_name, results, r_map_name)) ? results[1].str()
-                                                        : map_name;
+    (std::regex_match(map_name, results, r_map_name)) ? results[1].str()
+    : map_name;
 
   // for instance-specific values
   auto dist_table = DistTable(ins);
@@ -180,7 +181,7 @@ void Log::make_step_log(const Instance& ins, const std::string& output_name,
   log << "makespan_lb=" << get_makespan_lower_bound(ins, dist_table) << "\n";
   log << "sum_of_loss=" << get_sum_of_loss() << "\n";
   log << "sum_of_loss_lb=" << get_sum_of_costs_lower_bound(ins, dist_table)
-      << "\n";
+    << "\n";
   log << "comp_time=" << comp_time_ms << "\n";
   log << "seed=" << seed << "\n";
   if (log_short) return;
@@ -196,7 +197,7 @@ void Log::make_step_log(const Instance& ins, const std::string& output_name,
   }
   log << "\nsolution=\n";
   std::vector<std::vector<int> > new_sol(
-      ins.nagents, std::vector<int>(step_solution.size(), 0));
+    ins.nagents, std::vector<int>(step_solution.size(), 0));
   for (size_t t = 0; t < step_solution.size(); ++t) {
     log << t << ":";
     auto C = step_solution[t];
@@ -217,7 +218,7 @@ void Log::make_life_long_log(const Instance& ins, const int seed)
   auto get_x = [&](int k) { return k % ins.graph.width; };
   auto get_y = [&](int k) { return k / ins.graph.width; };
   std::vector<std::vector<int> > new_sol(
-      ins.nagents, std::vector<int>(life_long_solution.size(), 0));
+    ins.nagents, std::vector<int>(life_long_solution.size(), 0));
 
   for (size_t t = 0; t < life_long_solution.size(); ++t) {
     auto C = life_long_solution[t];
@@ -232,7 +233,7 @@ void Log::make_life_long_log(const Instance& ins, const int seed)
   out2 << "statistics:" << std::endl;
   out2 << "  makespan: " << get_makespan() << std::endl;
   out2 << "  makespan_lb: " << get_makespan_lower_bound(ins, dist_table)
-       << std::endl;
+    << std::endl;
   out2 << "  seed: " << seed << "\n";
   out2 << "  solved: " << !step_solution.empty() << "\n";
   out2 << "  soc: " << get_sum_of_costs() << "\n";
@@ -243,8 +244,8 @@ void Log::make_life_long_log(const Instance& ins, const int seed)
     out2 << "  agent" << a << ":" << std::endl;
     for (size_t t = 0; t < new_sol[a].size(); ++t) {
       out2 << "    - x: " << get_y(new_sol[a][t]) << std::endl
-           << "      y: " << get_x(new_sol[a][t]) << std::endl
-           << "      t: " << t << std::endl;
+        << "      y: " << get_x(new_sol[a][t]) << std::endl
+        << "      t: " << t << std::endl;
     }
   }
   out2.close();

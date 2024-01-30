@@ -11,41 +11,42 @@ int main(int argc, char* argv[])
   argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();  // map file
   program.add_argument("-ng", "--ngoals")
-      .help("number of goals")
-      .required();  // number of goals: agent first go to get goal, and then
-                    // return to unloading port
+    .help("number of goals")
+    .required();  // number of goals: agent first go to get goal, and then
+  // return to unloading port
   program.add_argument("-gk", "--goals-k")
-      .help("maximum k different number of goals in m segment of all goals")
-      .required();
+    .help("maximum k different number of goals in m segment of all goals")
+    .required();
   program.add_argument("-gm", "--goals-m")
-      .help("maximum k different number of goals in m segment of all goals")
-      .required();
+    .help("maximum k different number of goals in m segment of all goals")
+    .required();
   program.add_argument("-na", "--nagents")
-      .help("number of agents")
-      .required();  // number of agents
+    .help("number of agents")
+    .required();  // number of agents
   program.add_argument("-s", "--seed")
-      .help("seed")
-      .default_value(std::string("0"));  // random seed
+    .help("seed")
+    .default_value(std::string("0"));  // random seed
   program.add_argument("-v", "--verbose")
-      .help("verbose")
-      .default_value(std::string("0"));  // verbose
+    .help("verbose")
+    .default_value(std::string("0"));  // verbose
   program.add_argument("-t", "--time_limit_sec")
-      .help("time limit sec")
-      .default_value(std::string("10"));  // time limit (second)
+    .help("time limit sec")
+    .default_value(std::string("10"));  // time limit (second)
   program.add_argument("-o", "--output")
-      .help("output file")
-      .default_value(std::string("./result/result.txt"));  // output file
+    .help("output file")
+    .default_value(std::string("./result/result.txt"));  // output file
   program.add_argument("-l", "--log_short")
-      .default_value(false)
-      .implicit_value(true);
+    .default_value(false)
+    .implicit_value(true);
   program.add_argument("-d", "--debug")
-      .help("enable debug logging")
-      .default_value(false)
-      .implicit_value(true);  // debug mode
+    .help("enable debug logging")
+    .default_value(false)
+    .implicit_value(true);  // debug mode
 
   try {
     program.parse_known_args(argc, argv);
-  } catch (const std::runtime_error& err) {
+  }
+  catch (const std::runtime_error& err) {
     std::cerr << err.what() << std::endl;
     std::cerr << program;
     std::exit(1);
@@ -54,7 +55,7 @@ int main(int argc, char* argv[])
   // setup instance
   const auto verbose = std::stoi(program.get<std::string>("verbose"));
   const auto time_limit_sec =
-      std::stoi(program.get<std::string>("time_limit_sec"));
+    std::stoi(program.get<std::string>("time_limit_sec"));
   auto deadline = Deadline(time_limit_sec * 1000);
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
@@ -104,23 +105,23 @@ int main(int argc, char* argv[])
     // info output
     auto current_time = std::chrono::steady_clock::now();
     auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
-                            current_time - timer)
-                            .count();
+      current_time - timer)
+      .count();
 
     if (!debug && elapsed_time >= 1000 && cache_access > 0) {
       double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
       console->info(
-          "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Rate: "
-          "{:.2f}%    |   Steps Used: {:5}",
-          elapsed_time, i, cacheRate, step);
+        "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Rate: "
+        "{:.2f}%    |   Steps Used: {:5}",
+        elapsed_time, i, cacheRate, step);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
 
     // ternimal log
     console->debug(
-        "----------------------------------------------------------------------"
-        "----------------------------------------");
+      "----------------------------------------------------------------------"
+      "----------------------------------------");
     console->debug("STEP:   {}", step);
     console->debug("STARTS: {}", ins.starts);
     console->debug("GOALS:  {}", ins.goals);
@@ -155,11 +156,11 @@ int main(int argc, char* argv[])
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
     log.make_step_log(ins, output_name, comp_time_ms, map_name, seed,
-                      log_short);
+      log_short);
 
     // assign new goals
     nagents_with_new_goals = ins.update_on_reaching_goals(
-        solution, ngoals - i, cache_access, cache_hit);
+      solution, ngoals - i, cache_access, cache_hit);
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
