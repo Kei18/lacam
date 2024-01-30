@@ -1,11 +1,13 @@
 #include "../include/dist_table.hpp"
 
-DistTable::DistTable(const Instance& ins) : K(ins.G.V.size()), table(ins.nagents, std::vector<int>(K, K))
+DistTable::DistTable(const Instance& ins)
+    : K(ins.graph.V.size()), table(ins.nagents, std::vector<int>(K, K))
 {
   setup(&ins);
 }
 
-DistTable::DistTable(const Instance* ins) : K(ins->G.V.size()), table(ins->nagents, std::vector<int>(K, K))
+DistTable::DistTable(const Instance* ins)
+    : K(ins->graph.V.size()), table(ins->nagents, std::vector<int>(K, K))
 {
   setup(ins);
 }
