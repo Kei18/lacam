@@ -1,9 +1,9 @@
 #include "../include/instance.hpp"
 
 Instance::Instance(const std::string& map_filename, std::mt19937* MT,
-  std::shared_ptr<spdlog::logger> _logger, const int _nagents,
-  const int _ngoals)
-  : graph(Graph(map_filename, _logger, MT)),
+  std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, const uint _nagents,
+  const uint _ngoals)
+  : graph(Graph(map_filename, _logger, goals_m, goals_k, _ngoals, MT)),
   starts(Config()),
   goals(Config()),
   nagents(_nagents),
@@ -28,7 +28,7 @@ Instance::Instance(const std::string& map_filename, std::mt19937* MT,
   int j = 0;
   while (true) {
     if (j >= K) return;
-    Vertex* goal = graph.random_target_vertex();
+    Vertex* goal = graph.get_next_goal();
     goals.push_back(goal);
     cargo_goals.push_back(goal);
     bit_status.push_back(0);  // at the begining, the cache is empty
@@ -155,7 +155,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
         logger->debug("Agent {} has bring cargo {} to unloading port", j,
           *cargo_goals[j]);
         // generate new cargo goal
-        Vertex* cargo = graph.random_target_vertex();
+        Vertex* cargo = graph.get_next_goal();
         cargo_goals[j] = cargo;
         Vertex* goal = graph.cache.try_cache_cargo(cargo);
 

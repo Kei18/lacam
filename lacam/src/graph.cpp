@@ -16,7 +16,7 @@ static const std::regex r_height = std::regex(R"(height\s(\d+))");
 static const std::regex r_width = std::regex(R"(width\s(\d+))");
 static const std::regex r_map = std::regex(R"(map)");
 
-Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, std::mt19937* _randomSeed) : V(Vertices()), cache(Cache(_logger)), width(0), height(0), randomSeed(_randomSeed), logger(std::move(_logger))
+Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, uint ngoals, std::mt19937* _randomSeed) : V(Vertices()), cache(Cache(_logger)), width(0), height(0), randomSeed(_randomSeed), logger(std::move(_logger))
 {
   std::ifstream file(filename);
   if (!file) {
@@ -136,6 +136,8 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
       }
     }
   }
+
+  fill_goals_list(goals_m, goals_k, ngoals);
 }
 
 int Graph::size() const { return V.size(); }
@@ -150,6 +152,55 @@ Vertex* Graph::random_target_vertex() {
   std::advance(it, index);
 
   return *it;
+}
+
+void Graph::fill_goals_list(uint goals_m, uint goals_k, uint ngoals) {
+  std::deque<Vertex*> sliding_window;
+  std::unordered_map<Vertex*, int> goal_count;
+  uint goals_generated = 0;
+
+  while (goals_list.size() < ngoals) {
+    Vertex* selected_goal = random_target_vertex();
+
+    if (goals_generated % 100 == 0) {
+      logger->debug("Generated {}/{} goals.", goals_generated, ngoals);
+    }
+
+    if (!selected_goal) {
+      break; // Stop if no more goals can be selected
+    }
+
+    sliding_window.push_back(selected_goal);
+    goal_count[selected_goal]++;
+
+    if (sliding_window.size() > goals_m) {
+      Vertex* removed_goal = sliding_window.front();
+      sliding_window.pop_front();
+      goal_count[removed_goal]--;
+      if (goal_count[removed_goal] == 0) {
+        goal_count.erase(removed_goal);
+      }
+    }
+
+    if (goal_count.size() <= goals_k) {
+      goals_list.push_back(selected_goal);
+      goals_generated++;
+    }
+  }
+}
+
+Vertex* Graph::get_next_goal() {
+  assert(!goals_list.empty());
+
+  // We should let reach unploading port agents to be disappeared when the total
+  // number of goals has been assigned but yet finished. For simplify, we let it 
+  // out to have new random target
+  if (goals_cnt >= goals_list.size()) {
+    return random_target_vertex();
+  }
+  auto goal = goals_list[goals_cnt];
+  goals_cnt++;
+  return goal;
 }
 
 bool is_same_config(const Config& C1, const Config& C2)

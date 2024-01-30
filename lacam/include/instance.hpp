@@ -26,8 +26,8 @@ struct Instance {
   std::shared_ptr<spdlog::logger> logger;
 
   Instance(const std::string& map_filename, std::mt19937* MT,
-    std::shared_ptr<spdlog::logger> _logger, const int _nagents = 1,
-    const int _ngoals = 1);
+    std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, const uint _nagents = 1,
+    const uint _ngoals = 1);
   ~Instance() {}
 
   // simple feasibility check of instance

@@ -63,12 +63,12 @@ int main(int argc, char* argv[])
   const auto output_name = program.get<std::string>("output");
   const auto log_short = program.get<bool>("log_short");
   const auto ngoals = std::stoi(program.get<std::string>("ngoals"));
-  const auto goalsm = std::stoi(program.get<std::string>("goals-m"));
-  const auto goalsk = std::stoi(program.get<std::string>("goals-k"));
+  const auto goals_m = std::stoi(program.get<std::string>("goals-m"));
+  const auto goals_k = std::stoi(program.get<std::string>("goals-k"));
   const auto nagents = std::stoi(program.get<std::string>("nagents"));
   const auto debug = program.get<bool>("debug");
   if (debug) console->set_level(spdlog::level::debug);
-  auto ins = Instance(map_name, &MT, console, nagents, ngoals);
+  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, nagents, ngoals);
 
   // check paras
   if (!ins.is_valid(1)) {
