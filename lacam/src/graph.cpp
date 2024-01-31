@@ -158,35 +158,44 @@ Vertex* Graph::random_target_vertex() {
 void Graph::fill_goals_list(uint goals_m, uint goals_k, uint ngoals) {
   std::deque<Vertex*> sliding_window;
   std::unordered_map<Vertex*, int> goal_count;
+  std::unordered_set<Vertex*> diff_goals;
   uint goals_generated = 0;
 
   while (goals_list.size() < ngoals) {
-    Vertex* selected_goal = random_target_vertex();
 
     if (goals_generated % 100 == 0) {
       logger->debug("Generated {}/{} goals.", goals_generated, ngoals);
     }
-
+    Vertex* selected_goal = random_target_vertex();
     if (!selected_goal) {
       break; // Stop if no more goals can be selected
     }
 
-    sliding_window.push_back(selected_goal);
-    goal_count[selected_goal]++;
-
-    if (sliding_window.size() > goals_m) {
+    if (sliding_window.size() == goals_m) {
       Vertex* removed_goal = sliding_window.front();
       sliding_window.pop_front();
       goal_count[removed_goal]--;
       if (goal_count[removed_goal] == 0) {
         goal_count.erase(removed_goal);
+        diff_goals.erase(removed_goal);
       }
     }
 
-    if (goal_count.size() <= goals_k) {
-      goals_list.push_back(selected_goal);
-      goals_generated++;
+    if (diff_goals.size() == goals_k) {
+      int index = get_random_int(randomSeed, 0, goals_k - 1);
+      auto it = diff_goals.begin();
+      std::advance(it, index);
+      selected_goal = *it;
     }
+
+    sliding_window.push_back(selected_goal);
+    goal_count[selected_goal]++;
+    diff_goals.insert(selected_goal);
+
+
+    goals_list.push_back(selected_goal);
+    goals_generated++;
+    
   }
 }
 

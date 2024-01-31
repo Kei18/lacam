@@ -103,14 +103,16 @@ int main(int argc, char* argv[])
   uint step = 1;
   uint cache_hit = 0;
   uint cache_access = 0;
+  uint batch_idx = 0;
   for (int i = 0; i < ngoals; i += nagents_with_new_goals) {
+    batch_idx ++;
     // info output
     auto current_time = std::chrono::steady_clock::now();
     auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
       current_time - timer)
       .count();
 
-    if (!debug && elapsed_time >= 1000 && cache_access > 0) {
+    if (!debug && batch_idx % 100 == 0 && cache_access > 0) {
       double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Rate: "
