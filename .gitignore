@@ -44,5 +44,5 @@ map
 .idea/
 PlanViz/
 cmake-build-debug/
-result/
+result/*
 *.yaml
