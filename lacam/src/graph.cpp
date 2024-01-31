@@ -58,6 +58,8 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
       }
       // record cache area
       else if (s == 'C') {
+        v->cargo = true;
+        // insert into cache
         cache.node_cargo.push_back(v);
         cache.node_id.push_back(v);
         cache.LRU.push_back(0);
