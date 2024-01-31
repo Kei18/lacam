@@ -61,10 +61,12 @@ bool is_expired(const Deadline* deadline);
 float get_random_float(std::mt19937* MT, float from = 0, float to = 1);
 int get_random_int(std::mt19937* MT, int from, int to);
 
+
 struct Vertex {
-  const int id;       // index for V in Graph
-  const int index;    // index for U (width * y + x) in Graph
-  const int width;    // indth of graph
+  const int id;         // index for V in Graph
+  const int index;      // index for U (width * y + x) in Graph
+  const int width;      // indth of graph
+  bool cargo = false;   // indicate cargo vertex
   std::vector<Vertex*> neighbor;
 
   Vertex(int _id, int _index, int _width);
@@ -82,14 +84,7 @@ struct Vertex {
   }
 };
 
-struct CargoVertex {
-  const int index;    // index for cargo (width * y + x) in Graph
-  CargoVertex(int _index);
-};
-
 using Vertices = std::vector<Vertex*>;
-using CargoVertices = std::vector<CargoVertex*>;
-using TargetVertices = std::unordered_set<Vertex*>;
 using Config = std::vector<Vertex*>;  // locations for all agents
 
 // Overload the << for Config

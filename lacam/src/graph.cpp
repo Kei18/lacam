@@ -2,8 +2,6 @@
 
 Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(_width), neighbor(Vertices()) {}
 
-CargoVertex::CargoVertex(int _index) : index(_index) {}
-
 Graph::~Graph()
 {
   for (auto& v : V)
@@ -49,31 +47,31 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
     if (*(line.end() - 1) == 0x0d) line.pop_back();
     for (int x = 0; x < width; ++x) {
       char s = line[x];
-      if (s == 'H') {
-        // record cargoes
-        auto index = width * y + x;
-        auto v = new CargoVertex(index);
+      // record roads
+      if (s == 'T' or s == '@') continue;
+      auto index = width * y + x;
+      auto v = new Vertex(V.size(), index, width);
+
+      // record unloading ports
+      if (s == 'U') {
+        unloading_ports.push_back(v);
+      }
+      // record cache area
+      else if (s == 'C') {
+        cache.node_cargo.push_back(v);
+        cache.node_id.push_back(v);
+        cache.LRU.push_back(0);
+        cache.bit_lock.push_back(0);
+      }
+      // record cargos
+      else if (s == 'H') {
+        v->cargo = true;
         cargo_vertices.push_back(v);
       }
-      else {
-        // record roads
-        if (s == 'T' or s == '@') continue;
-        auto index = width * y + x;
-        auto v = new Vertex(V.size(), index, width);
-        V.push_back(v);
-        U[index] = v;
-        // record unloading ports
-        if (s == 'U') {
-          unloading_ports.push_back(v);
-        }
-        // record cache area
-        else if (s == 'C') {
-          cache.node_cargo.push_back(v);
-          cache.node_id.push_back(v);
-          cache.LRU.push_back(0);
-          cache.bit_lock.push_back(0);
-        }
-      }
+
+      // record in whole map
+      V.push_back(v);
+      U[index] = v;
     }
     ++y;
   }
@@ -87,52 +85,42 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
       // left
       if (x > 0) {
         auto u = U[width * y + (x - 1)];
-        if (u != nullptr) v->neighbor.push_back(u);
+        if (v->cargo) {
+          if (u != nullptr && !u->cargo) v->neighbor.push_back(u);
+        }
+        else {
+          if (u != nullptr) v->neighbor.push_back(u);
+        }
       }
       // right
       if (x < width - 1) {
         auto u = U[width * y + (x + 1)];
-        if (u != nullptr) v->neighbor.push_back(u);
+        if (v->cargo) {
+          if (u != nullptr && !u->cargo) v->neighbor.push_back(u);
+        }
+        else {
+          if (u != nullptr) v->neighbor.push_back(u);
+        }
       }
       // up
       if (y < height - 1) {
         auto u = U[width * (y + 1) + x];
-        if (u != nullptr) v->neighbor.push_back(u);
+        if (v->cargo) {
+          if (u != nullptr && !u->cargo) v->neighbor.push_back(u);
+        }
+        else {
+          if (u != nullptr) v->neighbor.push_back(u);
+        }
       }
       // down
       if (y > 0) {
         auto u = U[width * (y - 1) + x];
-        if (u != nullptr) v->neighbor.push_back(u);
-      }
-    }
-  }
-
-  // Add goal candidate
-  // TODO: This should be changed later when we apply
-  // cargo point to be access but not pass by
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      auto c = cargo_vertices[width * y + x];
-      if (c == nullptr) continue;
-      // left
-      if (x > 0) {
-        auto u = U[width * y + (x - 1)];
-        if (u != nullptr) goals_candidate.insert(u);
-      }
-      // right
-      if (x < width - 1) {
-        auto u = U[width * y + (x + 1)];
-        if (u != nullptr) goals_candidate.insert(u);
-      }
-      // up
-      if (y < height - 1) {
-        auto u = U[width * (y + 1) + x];
-        if (u != nullptr) goals_candidate.insert(u);
-      }
-      // down 
-      if (y > 0) {
-        auto u = U[width * (y - 1) + x];
-        if (u != nullptr) goals_candidate.insert(u);
+        if (v->cargo) {
+          if (u != nullptr && !u->cargo) v->neighbor.push_back(u);
+        }
+        else {
+          if (u != nullptr) v->neighbor.push_back(u);
+        }
       }
     }
   }
@@ -144,12 +132,12 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
 int Graph::size() const { return V.size(); }
 
 Vertex* Graph::random_target_vertex() {
-  if (goals_candidate.empty()) {
+  if (cargo_vertices.empty()) {
     return nullptr;  // Return nullptr if the set is empty
   }
 
-  int index = get_random_int(randomSeed, 0, goals_candidate.size() - 1);
-  auto it = goals_candidate.begin();
+  int index = get_random_int(randomSeed, 0, cargo_vertices.size() - 1);
+  auto it = cargo_vertices.begin();
   std::advance(it, index);
 
   return *it;
@@ -195,7 +183,7 @@ void Graph::fill_goals_list(uint goals_m, uint goals_k, uint ngoals) {
 
     goals_list.push_back(selected_goal);
     goals_generated++;
-    
+
   }
 }
 

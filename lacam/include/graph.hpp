@@ -10,8 +10,7 @@ struct Graph {
   Vertices U;                             // with nullptr, i.e., |U| = width * height
   Vertices unloading_ports;               // unloading port
   Cache cache;                            // cache
-  CargoVertices cargo_vertices;
-  TargetVertices goals_candidate;         // with nullptr, goal candidate
+  Vertices cargo_vertices;
   Vertices goals_list;                    // goals list: length [ngoals], maximum [k] different goals in any [m] length sublist 
 
   int width;                              // grid width
