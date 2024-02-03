@@ -62,8 +62,10 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
         // insert into cache
         cache.node_cargo.push_back(v);
         cache.node_id.push_back(v);
+        cache.node_coming_cargo.push_back(v);
         cache.LRU.push_back(0);
-        cache.bit_lock.push_back(0);
+        cache.bit_cache_get_lock.push_back(0);
+        cache.bit_cache_insert_lock.push_back(0);
       }
       // record cargos
       else if (s == 'H') {

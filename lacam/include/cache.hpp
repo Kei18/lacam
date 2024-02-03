@@ -9,8 +9,10 @@
 struct Cache {
     Vertices node_cargo;
     Vertices node_id;
+    Vertices node_coming_cargo;
     std::vector<int> LRU;
-    std::vector<uint> bit_lock;
+    std::vector<uint> bit_cache_get_lock;
+    std::vector<uint> bit_cache_insert_lock;
     uint LRU_cnt = 0;
 
     std::shared_ptr<spdlog::logger> logger;
@@ -27,10 +29,18 @@ struct Cache {
 
     /**
      * @brief Check if a specific cargo is cached.
-     * @param cargo A pointer to the Vertex representing the cargo in cache.
+     * @param cargo A pointer to the Vertex representing the cargo.
      * @return The index of the cached cargo, or -1 if not cached.
      */
     int get_cargo_in_cache_index(Vertex* cargo);
+
+    /**
+     * @brief Check if a specific cargo is coming to cache
+     * @param cargo A pointer to the Vertex representing the cargo.
+     * @return true if is coming to cacehe, or false.
+    */
+
+    bool is_cargo_in_coming_cache(Vertex* cargo);
 
     /**
      * @brief Attempt to find a cached cargo and retrieve associated goals.
