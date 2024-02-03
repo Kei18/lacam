@@ -8,20 +8,19 @@
 #include "utils.hpp"
 
 struct Instance {
-  Graph graph;    // graph
-  Config starts;  // initial configuration
-  Config goals;   // goal configuration, can be in warehouse block/cache block
-  Config cargo_goals;  // cargo goal configuration
+  Graph graph;          // graph
+  Config starts;        // initial configuration
+  Config goals;         // goal configuration, can be in warehouse block/cache block
+  Config cargo_goals;   // cargo goal configuration
   // Status control:
-  // 0 -> cache miss, go for warehouse get cargo
-  // 1 -> cache hit, go for cache get cargo
-  // 2 -> warehouse get cargo, find empty block, go back to insert cache
-  // 3 -> warehouse get cargo, cannot find empty block, directly back to
-  // unloading port
-  //   -> cache get cargo, go back to unloading port
+  // 0 -> cache miss, going for warehouse get cargo
+  // 1 -> cache hit, going for cache get cargo
+  // 2 -> warehouse get cargo, find empty block, going back to insert cache
+  // 3 -> warehouse get cargo, cannot find empty block, going back to unloading port
+  // 4 -> cache get cargo, going back to unloading port
   std::vector<uint> bit_status;
-  const uint nagents;  // number of agents
-  const uint ngoals;   // number if goals
+  const uint nagents;   // number of agents
+  const uint ngoals;    // number of goals
 
   std::shared_ptr<spdlog::logger> logger;
 

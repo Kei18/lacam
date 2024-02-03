@@ -54,15 +54,48 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
   int step = vertex_list.size() - 1;
   int reached_count = 0;
 
-  // Check each vertex at this time step
+  // TODO: assign goals to closed free agents
+
+  // First, we check vertex which status will released lock
   for (size_t j = 0; j < vertex_list[step].size(); ++j) {
-    // TODO: assign goals to closed free agents
-    if ((*vertex_list[step][j] == *goals[j]) && (remain_goals > 0)) {
-      // Status 0 finished, agent has moved to warehouse cargo target
-      if (bit_status[j] == 0) {
-        Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j],
-          graph.unloading_ports[0]);
-        // Cache full, directly get back to unloading port, -> Status 3
+    if (*vertex_list[step][j] == *goals[j]) {
+      // Status 1 finished. ==> Status 4
+      // Agent has moved to cache cargo target.
+      // Update cache lock info, directly move back to unloading port.
+      if (bit_status[j] == 1) {
+        logger->debug(
+          "Agent {} status 1 -> status 4, reach cached cargo {} at cache "
+          "block {}, return to unloading port",
+          j, *cargo_goals[j], *goals[j]);
+        bit_status[j] = 4;
+        graph.cache.update_cargo_from_cache(cargo_goals[j], goals[j]);
+        goals[j] = graph.unloading_ports[0];
+      }
+      // Status 2 finished. ==> Status 4
+      // Agent has bring uncached cargo back to cache.
+      // Update cache, move to unloading port.
+      else if (bit_status[j] == 2) {
+        if (graph.cache.update_cargo_into_cache(cargo_goals[j], goals[j])) {
+          logger->debug(
+            "Agent {} status 2 -> status 4, bring cargo {} to cache block "
+            "{}, then return to unloading port",
+            j, *cargo_goals[j], *goals[j]);
+          bit_status[j] = 4;
+          goals[j] = graph.unloading_ports[0];
+        }
+      }
+    }
+  }
+
+  // Second, we check vertex which status will require (or not require) lock
+  for (size_t j = 0; j < vertex_list[step].size(); ++j) {
+    if (bit_status[j] == 0) {
+      // Status 0 finished.
+      if (*vertex_list[step][j] == *goals[j]) {
+        // Agent has moved to warehouse cargo target
+        Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
+        // Cache is full, directly get back to unloading port.
+        // ==> Status 3
         if (goal == graph.unloading_ports[0]) {
           logger->debug(
             "Agent {} status 0 -> status 3, reach warehouse cargo {}, cache "
@@ -78,88 +111,46 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
             j, *cargo_goals[j], *goal);
           bit_status[j] = 2;
         }
-
         // update goal
         goals[j] = goal;
       }
-      // Status 1 finished, agent has moved to cache cargo target
-      // update cache lock info, directly move back to unloading port, -> Status
-      // 3
-      else if (bit_status[j] == 1) {
-        logger->debug(
-          "Agent {} status 1 -> status 3, reach cached cargo {} at cache "
-          "block {}, return to unloading port",
-          j, *cargo_goals[j], *goals[j]);
-        bit_status[j] = 3;
-        graph.cache.update_cargo_from_cache(cargo_goals[j], goals[j]);
-        goals[j] = graph.unloading_ports[0];
-      }
-      // Status 2 finished, agent has bring uncached cargo back to cache
-      // update cache, move to unloading port, -> Status 3
-      else if (bit_status[j] == 2) {
-        if (graph.cache.update_cargo_into_cache(cargo_goals[j], goals[j])) {
+      // Status 0 yet not finished
+      else {
+        // Check if the cargo has been cached during the period
+        Vertex* goal = graph.cache.try_cache_cargo(cargo_goals[j]);
+        if (goal != cargo_goals[j]) {
+          // We find cached cargo, go to cache
+          // ==> Status 1
           logger->debug(
-            "Agent {} status 2 -> status 3, bring cargo {} to cache block "
-            "{}, then return to unloading port",
-            j, *cargo_goals[j], *goals[j]);
-          bit_status[j] = 3;
-          // update status and goal
-          goals[j] = graph.unloading_ports[0];
-
-          // Avoid depulicate cargos insert to cache
-          for (size_t i = 0; i < vertex_list[step].size(); ++i) {
-            if (i == j) continue;
-            if ((bit_status[i] == 2) && (cargo_goals[i] == cargo_goals[j])) {
-              logger->debug(
-                "Agent {} has same cache missed cargo target with agent {}, "
-                "stop go to cache and directly go to unloading port",
-                i, j);
-              bit_status[i] = 3;
-              goals[i] = graph.unloading_ports[0];
-            }
-          }
-        }
-        else {
-          // The cache position is locked while moving
-          Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j],
-            graph.unloading_ports[0]);
-          // Cache full, directly get back to unloading port, -> Status 3
-          if (goal == graph.unloading_ports[0]) {
-            logger->debug(
-              "Agent {} status 2 -> status 3, reach cache block {}, but "
-              "original cache block is locked, and cache is full, go back to "
-              "unloading port",
-              j, *goals[j]);
-            bit_status[j] = 3;
-          }
-          // Find empty cache block, go and insert cargo into cache, -> Status 2
-          else {
-            logger->debug(
-              "Agent {} status 2 -> status 2, reach cache block {}, but "
-              "original cache block is locked, find another cache block to "
-              "insert, go to cache block {}",
-              j, *goals[j], *goal);
-            bit_status[j] = 2;
-          }
-          // update goal
+            "Agent {} cache hit while moving to ware house to get cargo. Go to cache {}, status 0 -> status 1",
+            j, *cargo_goals[j], *goal);
+          cache_access++;
+          cache_hit++;
+          bit_status[j] = 1;
           goals[j] = goal;
         }
+        // Otherwise, we do nothing for cache miss situation
       }
-      // Status 3 finished, agent has back to unloading port, assigned with new
-      // cargo target
-      else if (bit_status[j] == 3) {
-        // update statistics
+    }
+    else if (bit_status[j] == 3) {
+      // Status 3 finished.
+      // Agent has back to unloading port, assigned with new cargo target
+      if (*vertex_list[step][j] == *goals[j]) {
+        // Stop if ngoals is finished.
+        if (remain_goals <= 0) break;
+        // Update statistics.
         remain_goals--;
         reached_count++;
 
-        logger->debug("Agent {} has bring cargo {} to unloading port", j,
-          *cargo_goals[j]);
-        // generate new cargo goal
+        logger->debug("Agent {} has bring cargo {} to unloading port", j, *cargo_goals[j]);
+
+        // Generate new cargo goal
         Vertex* cargo = graph.get_next_goal();
         cargo_goals[j] = cargo;
         Vertex* goal = graph.cache.try_cache_cargo(cargo);
 
-        // Cache hit, go to cache to get cached cargo, -> Status 1
+        // Cache hit, go to cache to get cached cargo
+        // ==> Status 1
         if (cargo != goal) {
           logger->debug(
             "Agent {} assigned with new cargo {}, cache hit. Go to cache {}, "
@@ -169,7 +160,8 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
           cache_hit++;
           bit_status[j] = 1;
         }
-        // Cache miss, go to warehouse to get cargo, -> Status 0
+        // Cache miss, go to warehouse to get cargo
+        // ==> Status 0
         else {
           logger->debug(
             "Agent {} assigned with new cargo {}, cache miss. Go to "
@@ -181,8 +173,66 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
         // update goal
         goals[j] = goal;
       }
+      // Agent has yet not back to unloading port, we check if there is an empty
+      // cache block to insert
+      else {
+        Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
+        // Check if the cache is available during the period
+        if (goal != graph.unloading_ports[0]) {
+          logger->debug(
+            "Agent {} status 3 -> status 2, find cache block to insert during the moving, go to cache block {}",
+            j, *cargo_goals[j], *goal);
+          bit_status[j] = 2;
+        }
+        // Otherwise, we do nothing if the cache miss
+      }
+    }
+    else if (bit_status[j] == 4) {
+      // Status 4 finished.
+      // We only check status 4 if it is finished
+      if (*vertex_list[step][j] == *goals[j]) {
+        // Stop if ngoals is finished.
+        if (remain_goals <= 0) break;
+        // Update statistics.
+        remain_goals--;
+        reached_count++;
+
+        logger->debug("Agent {} has bring cargo {} to unloading port", j, *cargo_goals[j]);
+
+        // Generate new cargo goal
+        Vertex* cargo = graph.get_next_goal();
+        cargo_goals[j] = cargo;
+        Vertex* goal = graph.cache.try_cache_cargo(cargo);
+
+        // Cache hit, go to cache to get cached cargo
+        // ==> Status 1
+        if (cargo != goal) {
+          logger->debug(
+            "Agent {} assigned with new cargo {}, cache hit. Go to cache {}, "
+            "status 4 -> status 1",
+            j, *cargo_goals[j], *goal);
+          cache_access++;
+          cache_hit++;
+          bit_status[j] = 1;
+        }
+        // Cache miss, go to warehouse to get cargo
+        // ==> Status 0
+        else {
+          logger->debug(
+            "Agent {} assigned with new cargo {}, cache miss. Go to "
+            "warehouse, status 4 -> status 0",
+            j, *cargo_goals[j]);
+          cache_access++;
+          bit_status[j] = 0;
+        }
+        // update goal
+        goals[j] = goal;
+      }
     }
   }
+
+  // 3. We check unreached vertex if they can find their goal in cache
+
 
   starts = vertex_list[step];
   logger->debug("Ends: {}", starts);
