@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
     }
 
     // statistics
-    step += solution.size();
+    step += (solution.size() - 1);
 
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
@@ -168,6 +168,8 @@ int main(int argc, char* argv[])
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
+  double total_cache_rate = static_cast<double>(cache_hit) / cache_access * 100.0;
+  console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, step);
   log.make_life_long_log(ins, seed);
 
   return 0;
