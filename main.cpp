@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     if (!debug && batch_idx % 1000 == 0 && cache_access > 0) {
       double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
       console->info(
-        "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Rate: "
+        "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Hit Rate: "
         "{:2.2f}%    |   Steps Used: {:5}",
         elapsed_time, i, cacheRate, step);
       // Reset the timer
