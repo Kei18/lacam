@@ -129,6 +129,8 @@ Graph::Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logge
     }
   }
 
+  logger->info("Unloading ports: {}", unloading_ports);
+  logger->info("Cache blocks: {}", cache.node_id);
   logger->info("Generating goals...");
   fill_goals_list(goals_m, goals_k, ngoals);
 }
