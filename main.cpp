@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  file << map_name << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << std::endl;
+  file << map_name << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << "," << total_cache_rate << "," << step << std::endl;
   file.close();
 
   return 0;
