@@ -12,6 +12,7 @@ struct Instance {
   Config starts;        // initial configuration
   Config goals;         // goal configuration, can be in warehouse block/cache block
   Config cargo_goals;   // cargo goal configuration
+
   // Status control:
   // 0 -> cache miss, going for warehouse get cargo
   // 1 -> cache hit, going for cache get cargo
@@ -19,24 +20,40 @@ struct Instance {
   // 3 -> warehouse get cargo, cannot find empty block, going back to unloading port
   // 4 -> cache get cargo, going back to unloading port
   std::vector<uint> bit_status;
+
   const uint nagents;   // number of agents
   const uint ngoals;    // number of goals
 
   std::shared_ptr<spdlog::logger> logger;
 
-  Instance(const std::string& map_filename, std::mt19937* MT,
-    std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, const uint _nagents = 1,
-    const uint _ngoals = 1);
+  // Instructor
+  Instance(
+    const std::string& map_filename,
+    std::mt19937* MT,
+    std::shared_ptr<spdlog::logger> _logger,
+    uint goals_m,
+    uint goals_k,
+    bool is_cache,
+    const uint _nagents = 1,
+    const uint _ngoals = 1
+  );
+  // Destructor
   ~Instance() {}
 
-  // simple feasibility check of instance
+  // Simple feasibility check of instance
   bool is_valid(const int verbose = 0) const;
 
-  // check first batch of agents reach goals
-  uint update_on_reaching_goals(std::vector<Config>& vertex_list,
-    int remain_goals, uint& cache_access,
-    uint& cache_hit);
-};
+  // Check agents when reaching goals with cache
+  uint update_on_reaching_goals_with_cache(
+    std::vector<Config>& vertex_list,
+    int remain_goals,
+    uint& cache_access,
+    uint& cache_hit
+  );
 
-// solution: a sequence of configurations
-using Solution = std::vector<Config>;
+  // Check agents when reaching goals without cache
+  uint update_on_reaching_goals_without_cache(
+    std::vector<Config>& vertex_list,
+    int remain_goals
+  );
+};

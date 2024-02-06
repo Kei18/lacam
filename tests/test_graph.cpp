@@ -8,7 +8,7 @@ TEST(Graph, load_graph)
   auto MT = std::mt19937(0);
   test->set_level(spdlog::level::debug);
 
-  auto G = Graph(filename, test, 10, 5, 10, &MT);
+  auto G = Graph(filename, test, 10, 5, 10, true, &MT);
 
   // Test graph paras
   ASSERT_EQ(G.size(), 36);
@@ -17,7 +17,7 @@ TEST(Graph, load_graph)
   ASSERT_EQ(G.height, 8);
   ASSERT_EQ(G.unloading_ports.size(), 1);
   ASSERT_EQ(G.cargo_vertices.size(), 3);
-  ASSERT_EQ(G.cache.node_id.size(), 3);
+  ASSERT_EQ(G.cache->node_id.size(), 3);
   ASSERT_EQ(G.goals_list.size(), 10);
 
   // Test normal block
@@ -37,7 +37,7 @@ TEST(Graph, load_graph)
   ASSERT_EQ(G.cargo_vertices[0]->neighbor[1]->id, 4);
 
   // Test cache block
-  ASSERT_EQ(G.cache.node_id[0]->neighbor.size(), 2);
-  ASSERT_EQ(G.cache.node_id[0]->neighbor[0]->id, 8);
-  ASSERT_EQ(G.cache.node_id[0]->neighbor[1]->id, 3);
+  ASSERT_EQ(G.cache->node_id[0]->neighbor.size(), 2);
+  ASSERT_EQ(G.cache->node_id[0]->neighbor[0]->id, 8);
+  ASSERT_EQ(G.cache->node_id[0]->neighbor[1]->id, 3);
 }

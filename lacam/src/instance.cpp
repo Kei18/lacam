@@ -1,9 +1,15 @@
 #include "../include/instance.hpp"
 
-Instance::Instance(const std::string& map_filename, std::mt19937* MT,
-  std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, const uint _nagents,
+Instance::Instance(
+  const std::string& map_filename,
+  std::mt19937* MT,
+  std::shared_ptr<spdlog::logger> _logger,
+  uint goals_m,
+  uint goals_k,
+  bool is_cache,
+  const uint _nagents,
   const uint _ngoals)
-  : graph(Graph(map_filename, _logger, goals_m, goals_k, _ngoals, MT)),
+  : graph(Graph(map_filename, _logger, goals_m, goals_k, _ngoals, is_cache, MT)),
   starts(Config()),
   goals(Config()),
   nagents(_nagents),
@@ -46,8 +52,10 @@ bool Instance::is_valid(const int verbose) const
   return true;
 }
 
-uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
-  int remain_goals, uint& cache_access,
+uint Instance::update_on_reaching_goals_with_cache(
+  std::vector<Config>& vertex_list,
+  int remain_goals,
+  uint& cache_access,
   uint& cache_hit)
 {
   logger->debug("Remain goals: {}", remain_goals);
@@ -69,7 +77,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
           "block {}, return to unloading port",
           j, *cargo_goals[j], *goals[j]);
         bit_status[j] = 4;
-        graph.cache.update_cargo_from_cache(cargo_goals[j], goals[j]);
+        graph.cache->update_cargo_from_cache(cargo_goals[j], goals[j]);
         goals[j] = graph.unloading_ports[0];
       }
       // Status 2 finished. ==> Status 4
@@ -80,7 +88,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
           "Agent {} status 2 -> status 4, bring cargo {} to cache block "
           "{}, then return to unloading port",
           j, *cargo_goals[j], *goals[j]);
-        graph.cache.update_cargo_into_cache(cargo_goals[j], goals[j]);
+        graph.cache->update_cargo_into_cache(cargo_goals[j], goals[j]);
         bit_status[j] = 4;
         goals[j] = graph.unloading_ports[0];
       }
@@ -93,7 +101,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
       // Status 0 finished.
       if (vertex_list[step][j] == goals[j]) {
         // Agent has moved to warehouse cargo target
-        Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
+        Vertex* goal = graph.cache->try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
         // Cache is full, directly get back to unloading port.
         // ==> Status 3
         if (goal == graph.unloading_ports[0]) {
@@ -117,7 +125,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
       // Status 0 yet not finished
       else {
         // Check if the cargo has been cached during the period
-        Vertex* goal = graph.cache.try_cache_cargo(cargo_goals[j]);
+        Vertex* goal = graph.cache->try_cache_cargo(cargo_goals[j]);
         if (goal != cargo_goals[j]) {
           // We find cached cargo, go to cache
           // ==> Status 1
@@ -149,7 +157,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
         // Generate new cargo goal
         Vertex* cargo = graph.get_next_goal();
         cargo_goals[j] = cargo;
-        Vertex* goal = graph.cache.try_cache_cargo(cargo);
+        Vertex* goal = graph.cache->try_cache_cargo(cargo);
 
         // Cache hit, go to cache to get cached cargo
         // ==> Status 1
@@ -178,7 +186,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
       // Agent has yet not back to unloading port, we check if there is an empty
       // cache block to insert
       else {
-        Vertex* goal = graph.cache.try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
+        Vertex* goal = graph.cache->try_insert_cache(cargo_goals[j], graph.unloading_ports[0]);
         // Check if the cache is available during the period
         if (goal != graph.unloading_ports[0]) {
           logger->debug(
@@ -207,7 +215,7 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
         // Generate new cargo goal
         Vertex* cargo = graph.get_next_goal();
         cargo_goals[j] = cargo;
-        Vertex* goal = graph.cache.try_cache_cargo(cargo);
+        Vertex* goal = graph.cache->try_cache_cargo(cargo);
 
         // Cache hit, go to cache to get cached cargo
         // ==> Status 1
@@ -232,6 +240,38 @@ uint Instance::update_on_reaching_goals(std::vector<Config>& vertex_list,
         }
         // update goal
         goals[j] = goal;
+      }
+    }
+  }
+
+  starts = vertex_list[step];
+  logger->debug("Ends: {}", starts);
+  return reached_count;
+}
+
+uint Instance::update_on_reaching_goals_without_cache(
+  std::vector<Config>& vertex_list,
+  int remain_goals)
+{
+  logger->debug("Remain goals: {}", remain_goals);
+  int step = vertex_list.size() - 1;
+  logger->debug("Solution ends: {}", vertex_list[step]);
+  int reached_count = 0;
+
+  for (size_t j = 0; j < vertex_list[step].size(); ++j) {
+    if (vertex_list[step][j] == goals[j]) {
+      if (goals[j] == graph.unloading_ports[0]) {
+        if (remain_goals > 0) {
+          // Update statistics.
+          // Otherwise we still let agent go to fetch new cargo, but we do
+          // not update the statistics.
+          remain_goals--;
+          reached_count++;
+        }
+        goals[j] = graph.get_next_goal();
+      }
+      else {
+        goals[j] = graph.unloading_ports[0];
       }
     }
   }

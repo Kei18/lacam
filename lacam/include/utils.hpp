@@ -22,14 +22,9 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-#ifdef DEBUG
-#define DEBUG_LOG(x) std::cerr << x << std::endl
-#else
-#define DEBUG_LOG(x) 
-#endif
-
 using Time = std::chrono::steady_clock;
 
+// Lacam info struct, keep it here for now
 template <typename Head, typename... Tail>
 void info(const int level, const int verbose, Head&& head, Tail&&... tail);
 
@@ -43,7 +38,7 @@ void info(const int level, const int verbose, Head&& head, Tail&&... tail)
   info(level, verbose, std::forward<Tail>(tail)...);
 }
 
-// time manager
+// Time manager
 struct Deadline {
   Time::time_point t_s;
   const double time_limit_ms;
@@ -60,7 +55,6 @@ bool is_expired(const Deadline* deadline);
 
 float get_random_float(std::mt19937* MT, float from = 0, float to = 1);
 int get_random_int(std::mt19937* MT, int from, int to);
-
 
 struct Vertex {
   const int id;         // index for V in Graph
@@ -84,8 +78,11 @@ struct Vertex {
   }
 };
 
+// Locations for all agents
 using Vertices = std::vector<Vertex*>;
-using Config = std::vector<Vertex*>;  // locations for all agents
+using Config = std::vector<Vertex*>;
+// Solution: a sequence of configurations
+using Solution = std::vector<Config>;
 
 // Overload the << for Config
 inline std::ostream& operator<<(std::ostream& os, const Config& config) {
@@ -102,9 +99,9 @@ inline std::ostream& operator<<(std::ostream& os, const Config& config) {
   return os;
 }
 
+// Overload the spdlog for Vertex
 template <>
 struct fmt::formatter<Vertex> {
-  // Parses format specifications of the form ['f' | 'e'], which are not used in this example
   constexpr auto parse(fmt::format_parse_context& ctx) {
     return ctx.begin();
   }
@@ -117,6 +114,7 @@ struct fmt::formatter<Vertex> {
   }
 };
 
+// Overload the spdlog for Vertices
 template <>
 struct fmt::formatter<std::vector<Vertex*>> {
   template <typename ParseContext>

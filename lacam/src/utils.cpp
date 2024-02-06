@@ -1,5 +1,7 @@
 #include "../include/utils.hpp"
 
+Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(_width), neighbor(Vertices()) {}
+
 void info(const int level, const int verbose) { std::cout << std::endl; }
 
 Deadline::Deadline(double _time_limit_ms)

@@ -10,6 +10,7 @@ int main(int argc, char* argv[])
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();                                                                              // map file
+  program.add_argument("-ca", "--cache").help("enable cache").default_value(false).implicit_value(true);                                        // cache enable                    
   program.add_argument("-ng", "--ngoals").help("number of goals").required();                                                                   // number of goals: agent first go to get goal, and then return to unloading port
   program.add_argument("-gk", "--goals-k").help("maximum k different number of goals in m segment of all goals").required();
   program.add_argument("-gm", "--goals-m").help("maximum k different number of goals in m segment of all goals").required();
@@ -38,6 +39,7 @@ int main(int argc, char* argv[])
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
   const auto map_name = program.get<std::string>("map");
+  const auto is_cache = program.get<bool>("cache");
   const auto output_step_name = program.get<std::string>("output_step_result");
   const auto output_csv_name = program.get<std::string>("output_csv_result");
   const auto log_short = program.get<bool>("log_short");
@@ -56,6 +58,7 @@ int main(int argc, char* argv[])
 
   // output arguments info
   console->info("Map file:         {}", map_name);
+  console->info("Cache enable      {}", is_cache);
   console->info("Number of goals:  {}", ngoals);
   console->info("Number of agents: {}", nagents);
   console->info("Seed:             {}", seed);
@@ -66,7 +69,7 @@ int main(int argc, char* argv[])
   console->info("Debug:            {}", debug);
 
   // generating instance
-  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, nagents, ngoals);
+  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, is_cache, nagents, ngoals);
   if (!ins.is_valid(1)) {
     console->error("instance is invalid!");
     return 1;
@@ -91,12 +94,19 @@ int main(int argc, char* argv[])
       current_time - timer)
       .count();
 
-    if (!debug && batch_idx % 100 == 0 && cache_access > 0) {
+    if (!debug && batch_idx % 100 == 0 && cache_access > 0 && is_cache) {
       double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Hit Rate: "
         "{:2.2f}%    |   Steps Used: {:5}",
         elapsed_time, i, cacheRate, step);
+      // Reset the timer
+      timer = std::chrono::steady_clock::now();
+    }
+    else if (!debug && batch_idx % 100 == 0 && !is_cache) {
+      console->info(
+        "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Steps Used: {:5}",
+        elapsed_time, i, step);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
@@ -142,13 +152,22 @@ int main(int argc, char* argv[])
       log_short);
 
     // assign new goals
-    nagents_with_new_goals = ins.update_on_reaching_goals(
-      solution, ngoals - i, cache_access, cache_hit);
+    if (is_cache) {
+      nagents_with_new_goals = ins.update_on_reaching_goals_with_cache(solution, ngoals - i, cache_access, cache_hit);
+    }
+    else {
+      nagents_with_new_goals = ins.update_on_reaching_goals_without_cache(solution, ngoals - i);
+    }
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
-  double total_cache_rate = static_cast<double>(cache_hit) / cache_access * 100.0;
-  console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, step);
+  double total_cache_rate = is_cache ? static_cast<double>(cache_hit) / cache_access * 100.0 : .0;
+  if (is_cache) {
+    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, step);
+  }
+  else {
+    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, step);
+  }
   log.make_life_long_log(ins, seed);
 
   std::ofstream file(output_csv_name, std::ios::app);
