@@ -144,7 +144,7 @@ Graph::Graph(
         }
       }
     }
-    logger->info("Cache blocks: {}", cache->node_id);
+    logger->info("Cache blocks:     {}", cache->node_id);
   }
   else {
     // create vertices
@@ -205,7 +205,7 @@ Graph::Graph(
     }
   }
 
-  logger->info("Unloading ports: {}", unloading_ports);
+  logger->info("Unloading ports:  {}", unloading_ports);
   logger->info("Generating goals...");
   fill_goals_list(goals_m, goals_k, ngoals);
 }
@@ -232,7 +232,7 @@ void Graph::fill_goals_list(uint goals_m, uint goals_k, uint ngoals) {
 
   while (goals_list.size() < ngoals) {
     if (goals_generated % 1000 == 0) {
-      logger->info("Generated {}/{} goals.", goals_generated, ngoals);
+      logger->info("Generated {:5}/{:5} goals.", goals_generated, ngoals);
     }
 
     Vertex* selected_goal = random_target_vertex();
