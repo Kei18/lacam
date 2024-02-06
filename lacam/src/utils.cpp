@@ -1,10 +1,17 @@
 #include "../include/utils.hpp"
 
+Vertex::Vertex(int _id, int _index, int _width) : id(_id), index(_index), width(_width), neighbor(Vertices()) {}
+
 void info(const int level, const int verbose) { std::cout << std::endl; }
 
 Deadline::Deadline(double _time_limit_ms)
   : t_s(Time::now()), time_limit_ms(_time_limit_ms)
 {
+}
+
+bool Deadline::reset() {
+  t_s = Time::now();
+  return true;
 }
 
 double Deadline::elapsed_ms() const
@@ -42,4 +49,10 @@ float get_random_float(std::mt19937* MT, float from, float to)
 {
   std::uniform_real_distribution<float> r(from, to);
   return r(*MT);
+}
+
+int get_random_int(std::mt19937* MT, int from, int to)
+{
+  std::uniform_int_distribution<int> dist(from, to);
+  return dist(*MT);
 }

@@ -40,3 +40,9 @@
 **/build/
 Manifest.toml
 map
+.vscode/
+.idea/
+PlanViz/
+cmake-build-debug/
+result/*
+*.yaml
