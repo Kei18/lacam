@@ -19,7 +19,7 @@ Graph::Graph(
   uint goals_m,
   uint goals_k,
   uint ngoals,
-  bool is_cache,
+  CacheType cache_type,
   std::mt19937* _randomSeed) :
   V(Vertices()),
   width(0),
@@ -54,7 +54,7 @@ Graph::Graph(
 
   if (is_cache) {
     // Generate cache
-    cache = new Cache(_logger);
+    cache = new Cache(_logger, cache_type);
 
     // create vertices
     int y = 0;

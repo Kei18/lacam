@@ -8,7 +8,7 @@ TEST(Graph, load_graph)
   auto MT = std::mt19937(0);
   test->set_level(spdlog::level::debug);
 
-  auto G = Graph(filename, test, 10, 5, 10, true, &MT);
+  auto G = Graph(filename, test, 10, 5, 10, CacheType::LRU, &MT);
 
   // Test graph paras
   ASSERT_EQ(G.size(), 36);

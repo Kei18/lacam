@@ -21,7 +21,7 @@ struct Graph {
   std::shared_ptr<spdlog::logger> logger;
 
   // Instructor with cache
-  Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, uint ngoals, bool is_cache, std::mt19937* _randomSeed = 0);
+  Graph(const std::string& filename, std::shared_ptr<spdlog::logger> _logger, uint goals_m, uint goals_k, uint ngoals, CacheType cache_type, std::mt19937* _randomSeed = 0);
   // Destructor
   ~Graph();
 

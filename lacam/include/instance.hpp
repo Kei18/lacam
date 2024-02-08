@@ -33,7 +33,7 @@ struct Instance {
     std::shared_ptr<spdlog::logger> _logger,
     uint goals_m,
     uint goals_k,
-    bool is_cache,
+    CacheType cache_type,
     const uint _nagents = 1,
     const uint _ngoals = 1
   );

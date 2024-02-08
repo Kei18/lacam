@@ -6,7 +6,7 @@ TEST(Cache, cache_test)
     auto test = spdlog::stderr_color_mt("test");
     test->set_level(spdlog::level::debug);
 
-    Cache cache(test);
+    Cache cache(test, CacheType::LRU);
 
     /* Graph
         TTTTTTTTT
@@ -62,15 +62,15 @@ TEST(Cache, cache_test)
     cache.bit_cache_insert_lock.push_back(0);
 
     // Test `get_cache_block_in_cache_index(Vertex* block)`
-    ASSERT_EQ(0, cache.get_cache_block_in_cache_index(cache_1));
+    ASSERT_EQ(0, cache._get_cache_block_in_cache_index(cache_1));
 
     // Test `get_cargo_in_cache_index(Vertex* cargo)`
-    ASSERT_EQ(0, cache.get_cargo_in_cache_index(cargo_1));
-    ASSERT_EQ(-1, cache.get_cargo_in_cache_index(cargo_5));
+    ASSERT_EQ(0, cache._get_cargo_in_cache_index(cargo_1));
+    ASSERT_EQ(-1, cache._get_cargo_in_cache_index(cargo_5));
 
     // Test `is_cargo_in_coming_cache(Vertex* cargo)`
-    ASSERT_EQ(true, cache.is_cargo_in_coming_cache(cargo_4));
-    ASSERT_EQ(false, cache.is_cargo_in_coming_cache(cargo_5));
+    ASSERT_EQ(true, cache._is_cargo_in_coming_cache(cargo_4));
+    ASSERT_EQ(false, cache._is_cargo_in_coming_cache(cargo_5));
 
     // Test `try_cache_cargo(Vertex* cargo)`
     // We will get lock block cache_1 with cargo_1
