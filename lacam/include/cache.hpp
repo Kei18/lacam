@@ -14,6 +14,7 @@ struct Cache {
     std::vector<uint> bit_cache_insert_lock;
     std::shared_ptr<spdlog::logger> logger;
     CacheType cache_type;
+    std::mt19937* randomSeed;
 
     // LRU paras
     std::vector<int> LRU;
@@ -25,7 +26,7 @@ struct Cache {
 
     // Random paras (no paras)
 
-    Cache(std::shared_ptr<spdlog::logger> _logger, CacheType _cache_type);
+    Cache(std::shared_ptr<spdlog::logger> _logger, CacheType _cache_type, std::mt19937* _randomSeed = 0);
     ~Cache();
 
     /**
@@ -35,6 +36,13 @@ struct Cache {
      * @return true if successful, false otherwise
     */
     bool _update_cache_evited_policy_statistics(uint index, bool fifo_option);
+
+    /**
+     * @brief Get index of evicted cache block
+     * @param
+     * @return true if successful, false otherwise
+    */
+    int _get_cache_evited_policy_index();
 
     /**
      * @brief Get the index of a specified cache block.

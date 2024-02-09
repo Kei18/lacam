@@ -3,8 +3,13 @@
 
 #include "../include/cache.hpp"
 
-Cache::Cache(std::shared_ptr<spdlog::logger> _logger, CacheType _cache_type) :
-    logger(std::move(_logger)), cache_type(_cache_type) {};
+Cache::Cache(
+    std::shared_ptr<spdlog::logger> _logger,
+    CacheType _cache_type,
+    std::mt19937* _randomSeed) :
+    logger(std::move(_logger)),
+    cache_type(_cache_type),
+    randomSeed(_randomSeed) {};
 
 Cache::~Cache() {};
 
@@ -22,6 +27,55 @@ bool Cache::_update_cache_evited_policy_statistics(uint index, bool fifo_option)
         break;
     case CacheType::RANDOM:
         break;
+    default:
+        logger->error("Unreachable cache state!");
+        exit(1);
+    }
+
+    return true;
+}
+
+int Cache::_get_cache_evited_policy_index() {
+    // LRU, FIFO paras
+    int min_value = -1;
+    int min_index = -1;
+
+    // RANDOM paras
+    int index = -1;
+    std::vector<uint> candidate;
+    switch (cache_type) {
+    case CacheType::LRU:
+        for (uint i = 0; i < LRU.size(); i++) {
+            // If it's not locked and (it's the first element or the smallest so far)
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || LRU[i] < min_value)) {
+                min_value = LRU[i];
+                min_index = i;
+            }
+        }
+        return min_index;
+    case CacheType::FIFO:
+        for (uint i = 0; i < FIFO.size(); i++) {
+            // If it's not blocked and (it's the first element or the smallest so far)
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || FIFO[i] < min_value)) {
+                min_value = FIFO[i];
+                min_index = i;
+            }
+        }
+        return min_index;
+    case CacheType::RANDOM:
+        for (uint i = 0; i < node_id.size(); i++) {
+            // If it's not blocked
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0) {
+                candidate.push_back(i);
+            }
+        }
+
+        if (candidate.empty()) {
+            return index;
+        }
+
+        index = get_random_int(randomSeed, 0, candidate.size() - 1);
+        return candidate[index];
     default:
         logger->error("Unreachable cache state!");
         exit(1);

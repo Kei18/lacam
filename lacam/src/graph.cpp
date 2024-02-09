@@ -54,7 +54,7 @@ Graph::Graph(
 
   if (is_cache) {
     // Generate cache
-    cache = new Cache(_logger, cache_type);
+    cache = new Cache(_logger, cache_type, randomSeed);
 
     // create vertices
     int y = 0;
