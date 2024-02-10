@@ -79,9 +79,21 @@ Graph::Graph(
           cache->node_cargo.push_back(v);
           cache->node_id.push_back(v);
           cache->node_coming_cargo.push_back(v);
-          cache->LRU.push_back(0);
           cache->bit_cache_get_lock.push_back(0);
           cache->bit_cache_insert_lock.push_back(0);
+          switch (cache_type) {
+          case CacheType::LRU:
+            cache->LRU.push_back(0);
+            break;
+          case CacheType::FIFO:
+            cache->FIFO.push_back(0);
+            break;
+          case CacheType::RANDOM:
+            break;
+          default:
+            logger->error("Unreachable cache type!");
+            exit(1);
+          }
         }
         // record cargo blocks
         else if (s == 'H') {

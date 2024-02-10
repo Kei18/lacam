@@ -22,7 +22,7 @@ struct Cache {
 
     // FIFO paras
     std::vector<int> FIFO;
-    uint FIFO_cnt;
+    uint FIFO_cnt = 0;
 
     // Random paras (no paras)
 
