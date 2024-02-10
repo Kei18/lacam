@@ -52,7 +52,7 @@ Graph::Graph(
 
   U = Vertices(width * height, nullptr);
 
-  if (is_cache) {
+  if (is_cache(cache_type)) {
     // Generate cache
     cache = new Cache(_logger, cache_type, randomSeed);
 
