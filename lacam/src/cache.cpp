@@ -125,10 +125,9 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
         // It is impossible that a coming agent move cargo to this 
         // position while the cargo has already here
         bit_cache_get_lock[cache_index] += 1;
-        // We also update LRU here, since we do not want the cached cargo 
-        // been evicted while the agent moving to the cache
-        LRU_cnt += 1;
-        LRU[cache_index] = LRU_cnt;
+        // We also update cache evicted policy statistics
+        _update_cache_evited_policy_statistics(cache_index, false);
+
         return node_id[cache_index];
     }
 
@@ -151,33 +150,22 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
             bit_cache_insert_lock[i] += 1;
             // Updating coming cargo info
             node_coming_cargo[i] = cargo;
-            LRU_cnt += 1;
-            LRU[i] = LRU_cnt;
+            _update_cache_evited_policy_statistics(i, true);
             return node_id[i];
         }
     }
 
     // Third, try to find a LRU position that is not locked
-    int min_value = -1;
-    int min_index = -1;
-
-    for (uint i = 0; i < LRU.size(); i++) {
-        // If it's not locked and (it's the first element or the smallest so far)
-        if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || LRU[i] < min_value)) {
-            min_value = LRU[i];
-            min_index = i;
-        }
-    }
+    int index = _get_cache_evited_policy_index();
 
     // If we can find one, return the posititon
-    if (min_index != -1) {
+    if (index != -1) {
         // We lock this position and update LRU info
-        bit_cache_insert_lock[min_index] += 1;
+        bit_cache_insert_lock[index] += 1;
         // Updating coming cargo info
-        node_coming_cargo[min_index] = cargo;
-        LRU_cnt += 1;
-        LRU[min_index] = LRU_cnt;
-        return node_id[min_index];
+        node_coming_cargo[index] = cargo;
+        _update_cache_evited_policy_statistics(index, true);
+        return node_id[index];
     }
 
     // Else we can not insert into cache
