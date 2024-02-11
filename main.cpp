@@ -79,6 +79,8 @@ int main(int argc, char* argv[])
   console->info("Cache type:       {}", cache);
   console->info("Number of goals:  {}", ngoals);
   console->info("Number of agents: {}", nagents);
+  console->info("Goals m:          {}", goals_m);
+  console->info("Goals k:          {}", goals_k);
   console->info("Seed:             {}", seed);
   console->info("Verbose:          {}", verbose);
   console->info("Time limit (sec): {}", time_limit_sec);
@@ -100,7 +102,7 @@ int main(int argc, char* argv[])
 
   // solving
   uint nagents_with_new_goals = 0;
-  uint step = 1;
+  uint makespan = 1;
   uint cache_hit = 0;
   uint cache_access = 0;
   uint batch_idx = 0;
@@ -117,14 +119,14 @@ int main(int argc, char* argv[])
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Hit Rate: "
         "{:2.2f}%    |   Steps Used: {:5}",
-        elapsed_time, i, cacheRate, step);
+        elapsed_time, i, cacheRate, makespan);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
     else if (!debug && batch_idx % 100 == 0 && !is_cache(cache_type)) {
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Steps Used: {:5}",
-        elapsed_time, i, step);
+        elapsed_time, i, makespan);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
@@ -133,7 +135,7 @@ int main(int argc, char* argv[])
     console->debug(
       "----------------------------------------------------------------------"
       "----------------------------------------");
-    console->debug("STEP:   {}", step);
+    console->debug("STEP:   {}", makespan);
     console->debug("STARTS: {}", ins.starts);
     console->debug("GOALS:  {}", ins.goals);
 
@@ -162,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     // statistics
-    step += (solution.size() - 1);
+    makespan += (solution.size() - 1);
 
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
@@ -181,10 +183,10 @@ int main(int argc, char* argv[])
 
   double total_cache_rate = is_cache(cache_type) ? static_cast<double>(cache_hit) / cache_access * 100.0 : .0;
   if (is_cache(cache_type)) {
-    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, step);
+    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, makespan);
   }
   else {
-    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, step);
+    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, makespan);
   }
   log.make_life_long_log(ins, seed);
 
@@ -195,7 +197,18 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  file << map_name << "," << cache << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << "," << total_cache_rate << "," << step << std::endl;
+  file << map_name << ","
+    << cache << ","
+    << ngoals << ","
+    << nagents << ","
+    << seed << ","
+    << verbose << ","
+    << time_limit_sec << ","
+    << goals_m << ","
+    << goals_k << ","
+    << total_cache_rate << ","
+    << makespan << std::endl;
+
   file.close();
 
   return 0;
