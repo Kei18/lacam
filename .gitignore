@@ -45,3 +45,4 @@ map
 PlanViz/
 cmake-build-debug/
 result/*
+vis.yaml
