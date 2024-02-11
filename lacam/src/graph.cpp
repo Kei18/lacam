@@ -81,6 +81,7 @@ Graph::Graph(
           cache->node_coming_cargo.push_back(v);
           cache->bit_cache_get_lock.push_back(0);
           cache->bit_cache_insert_lock.push_back(0);
+          cache->is_empty.push_back(false);
           switch (cache_type) {
           case CacheType::LRU:
             cache->LRU.push_back(0);

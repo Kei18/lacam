@@ -15,6 +15,7 @@ struct Cache {
     std::shared_ptr<spdlog::logger> logger;
     CacheType cache_type;
     std::mt19937* randomSeed;
+    std::vector<bool> is_empty;
 
     // LRU paras
     std::vector<int> LRU;

@@ -143,14 +143,17 @@ Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
 
     // Second try to find a empty position to insert cargo
     // TODO: optimization, can set a flag to skip this
-    for (uint i = 0; i < LRU.size(); i++) {
-        if (LRU[i] == 0) {
+    for (uint i = 0; i < is_empty.size(); i++) {
+        if (is_empty[i]) {
             logger->debug("Find an empty cache block with index {} {}", i, *node_id[i]);
             // We lock this position and update LRU info
             bit_cache_insert_lock[i] += 1;
-            // Updating coming cargo info
+            // Update coming cargo info
             node_coming_cargo[i] = cargo;
+            // Update cache evited policy statistics
             _update_cache_evited_policy_statistics(i, true);
+            // Set the position to be used
+            is_empty[i] = true;
             return node_id[i];
         }
     }
