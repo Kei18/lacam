@@ -15,6 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 class ExperimentParameters(TypedDict):
     map: str
+    cache: List[str]
     ngoals: List[int]
     goals_k: List[int]
     goals_m: List[int]
@@ -45,6 +46,7 @@ def run_experiment(params: ExperimentParameters, dry_run: bool = False):
     cmd_base = [
         "./build/main",
         "--map", params["map"],
+        "--cache", params["cache"],
         "--ngoals", str(params["ngoals"]),
         "--goals-k", str(params["goals_k"]),
         "--goals-m", str(params["goals_m"]),

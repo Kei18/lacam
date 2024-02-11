@@ -76,7 +76,7 @@ int main(int argc, char* argv[])
 
   // output arguments info
   console->info("Map file:         {}", map_name);
-  console->info("Cache enable      {}", cache);
+  console->info("Cache type:       {}", cache);
   console->info("Number of goals:  {}", ngoals);
   console->info("Number of agents: {}", nagents);
   console->info("Seed:             {}", seed);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  file << map_name << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << "," << total_cache_rate << "," << step << std::endl;
+  file << map_name << "," << cache << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << "," << total_cache_rate << "," << step << std::endl;
   file.close();
 
   return 0;
