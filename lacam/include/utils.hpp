@@ -138,3 +138,16 @@ struct fmt::formatter<std::vector<Vertex*>> {
     return fmt::format_to(ctx.out(), "{}", to_string(out));
   }
 };
+
+
+// Cache Type
+enum class CacheType {
+  NONE,
+  LRU,
+  FIFO,
+  RANDOM
+};
+
+inline bool is_cache(CacheType cache_type) {
+  return cache_type != CacheType::NONE;
+}

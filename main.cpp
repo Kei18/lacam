@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();                                                                              // map file
-  program.add_argument("-ca", "--cache").help("enable cache").default_value(false).implicit_value(true);                                        // cache enable                    
+  program.add_argument("-ca", "--cache").help("cache type: NONE, LRU, FIFO, RANDOM").default_value(std::string("NONE"));                                                 // cache enable                    
   program.add_argument("-ng", "--ngoals").help("number of goals").required();                                                                   // number of goals: agent first go to get goal, and then return to unloading port
   program.add_argument("-gk", "--goals-k").help("maximum k different number of goals in m segment of all goals").required();
   program.add_argument("-gm", "--goals-m").help("maximum k different number of goals in m segment of all goals").required();
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
   const auto seed = std::stoi(program.get<std::string>("seed"));
   auto MT = std::mt19937(seed);
   const auto map_name = program.get<std::string>("map");
-  const auto is_cache = program.get<bool>("cache");
+  const auto cache = program.get<std::string>("cache");
   const auto output_step_name = program.get<std::string>("output_step_result");
   const auto output_csv_name = program.get<std::string>("output_csv_result");
   const auto log_short = program.get<bool>("log_short");
@@ -50,6 +50,24 @@ int main(int argc, char* argv[])
   const auto debug = program.get<bool>("debug");
   if (debug) console->set_level(spdlog::level::debug);
 
+  CacheType cache_type = CacheType::NONE;
+  if (cache == "NONE") {
+    cache_type = CacheType::NONE;
+  }
+  else if (cache == "LRU") {
+    cache_type = CacheType::LRU;
+  }
+  else if (cache == "FIFO") {
+    cache_type = CacheType::FIFO;
+  }
+  else if (cache == "RANDOM") {
+    cache_type = CacheType::RANDOM;
+  }
+  else {
+    console->error("Invalid cache type!");
+    exit(1);
+  }
+
   // check paras
   if (nagents > ngoals) {
     console->error("number of goals must larger or equal to number of agents");
@@ -58,9 +76,11 @@ int main(int argc, char* argv[])
 
   // output arguments info
   console->info("Map file:         {}", map_name);
-  console->info("Cache enable      {}", is_cache);
+  console->info("Cache type:       {}", cache);
   console->info("Number of goals:  {}", ngoals);
   console->info("Number of agents: {}", nagents);
+  console->info("Goals m:          {}", goals_m);
+  console->info("Goals k:          {}", goals_k);
   console->info("Seed:             {}", seed);
   console->info("Verbose:          {}", verbose);
   console->info("Time limit (sec): {}", time_limit_sec);
@@ -69,7 +89,7 @@ int main(int argc, char* argv[])
   console->info("Debug:            {}", debug);
 
   // generating instance
-  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, is_cache, nagents, ngoals);
+  auto ins = Instance(map_name, &MT, console, goals_m, goals_k, cache_type, nagents, ngoals);
   if (!ins.is_valid(1)) {
     console->error("instance is invalid!");
     return 1;
@@ -82,7 +102,7 @@ int main(int argc, char* argv[])
 
   // solving
   uint nagents_with_new_goals = 0;
-  uint step = 1;
+  uint makespan = 1;
   uint cache_hit = 0;
   uint cache_access = 0;
   uint batch_idx = 0;
@@ -94,19 +114,19 @@ int main(int argc, char* argv[])
       current_time - timer)
       .count();
 
-    if (!debug && batch_idx % 100 == 0 && cache_access > 0 && is_cache) {
+    if (!debug && batch_idx % 100 == 0 && cache_access > 0 && is_cache(cache_type)) {
       double cacheRate = static_cast<double>(cache_hit) / cache_access * 100.0;
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Cache Hit Rate: "
         "{:2.2f}%    |   Steps Used: {:5}",
-        elapsed_time, i, cacheRate, step);
+        elapsed_time, i, cacheRate, makespan);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
-    else if (!debug && batch_idx % 100 == 0 && !is_cache) {
+    else if (!debug && batch_idx % 100 == 0 && !is_cache(cache_type)) {
       console->info(
         "Elapsed Time: {:5}ms   |   Goals Reached: {:5}   |   Steps Used: {:5}",
-        elapsed_time, i, step);
+        elapsed_time, i, makespan);
       // Reset the timer
       timer = std::chrono::steady_clock::now();
     }
@@ -115,7 +135,7 @@ int main(int argc, char* argv[])
     console->debug(
       "----------------------------------------------------------------------"
       "----------------------------------------");
-    console->debug("STEP:   {}", step);
+    console->debug("STEP:   {}", makespan);
     console->debug("STARTS: {}", ins.starts);
     console->debug("GOALS:  {}", ins.goals);
 
@@ -144,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     // statistics
-    step += (solution.size() - 1);
+    makespan += (solution.size() - 1);
 
     // post processing
     log.print_stats(verbose, ins, comp_time_ms);
@@ -152,7 +172,7 @@ int main(int argc, char* argv[])
       log_short);
 
     // assign new goals
-    if (is_cache) {
+    if (is_cache(cache_type)) {
       nagents_with_new_goals = ins.update_on_reaching_goals_with_cache(solution, ngoals - i, cache_access, cache_hit);
     }
     else {
@@ -161,12 +181,12 @@ int main(int argc, char* argv[])
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
 
-  double total_cache_rate = is_cache ? static_cast<double>(cache_hit) / cache_access * 100.0 : .0;
-  if (is_cache) {
-    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, step);
+  double total_cache_rate = is_cache(cache_type) ? static_cast<double>(cache_hit) / cache_access * 100.0 : .0;
+  if (is_cache(cache_type)) {
+    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, makespan);
   }
   else {
-    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, step);
+    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, makespan);
   }
   log.make_life_long_log(ins, seed);
 
@@ -177,7 +197,18 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  file << map_name << "," << ngoals << "," << nagents << "," << seed << "," << verbose << "," << time_limit_sec << "," << goals_m << "," << goals_k << "," << total_cache_rate << "," << step << std::endl;
+  file << map_name << ","
+    << cache << ","
+    << ngoals << ","
+    << nagents << ","
+    << seed << ","
+    << verbose << ","
+    << time_limit_sec << ","
+    << goals_m << ","
+    << goals_k << ","
+    << total_cache_rate << ","
+    << makespan << std::endl;
+
   file.close();
 
   return 0;

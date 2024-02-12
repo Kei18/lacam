@@ -6,10 +6,10 @@ Instance::Instance(
   std::shared_ptr<spdlog::logger> _logger,
   uint goals_m,
   uint goals_k,
-  bool is_cache,
+  CacheType cache_type,
   const uint _nagents,
   const uint _ngoals)
-  : graph(Graph(map_filename, _logger, goals_m, goals_k, _ngoals, is_cache, MT)),
+  : graph(Graph(map_filename, _logger, goals_m, goals_k, _ngoals, cache_type, MT)),
   starts(Config()),
   goals(Config()),
   nagents(_nagents),

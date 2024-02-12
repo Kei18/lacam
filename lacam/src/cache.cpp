@@ -3,10 +3,86 @@
 
 #include "../include/cache.hpp"
 
-Cache::Cache(std::shared_ptr<spdlog::logger> _logger) : logger(std::move(_logger)) {};
+Cache::Cache(
+    std::shared_ptr<spdlog::logger> _logger,
+    CacheType _cache_type,
+    std::mt19937* _randomSeed) :
+    logger(std::move(_logger)),
+    cache_type(_cache_type),
+    randomSeed(_randomSeed) {};
+
 Cache::~Cache() {};
 
-int Cache::get_cache_block_in_cache_index(Vertex* block) {
+bool Cache::_update_cache_evited_policy_statistics(uint index, bool fifo_option) {
+    switch (cache_type) {
+    case CacheType::LRU:
+        LRU_cnt += 1;
+        LRU[index] = LRU_cnt;
+        break;
+    case CacheType::FIFO:
+        if (fifo_option) {
+            FIFO_cnt += 1;
+            FIFO[index] = FIFO_cnt;
+        }
+        break;
+    case CacheType::RANDOM:
+        break;
+    default:
+        logger->error("Unreachable cache state!");
+        exit(1);
+    }
+
+    return true;
+}
+
+int Cache::_get_cache_evited_policy_index() {
+    // LRU, FIFO paras
+    int min_value = -1;
+    int min_index = -1;
+
+    // RANDOM paras
+    int index = -1;
+    std::vector<uint> candidate;
+    switch (cache_type) {
+    case CacheType::LRU:
+        for (uint i = 0; i < LRU.size(); i++) {
+            // If it's not locked and (it's the first element or the smallest so far)
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || LRU[i] < min_value)) {
+                min_value = LRU[i];
+                min_index = i;
+            }
+        }
+        return min_index;
+    case CacheType::FIFO:
+        for (uint i = 0; i < FIFO.size(); i++) {
+            // If it's not blocked and (it's the first element or the smallest so far)
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || FIFO[i] < min_value)) {
+                min_value = FIFO[i];
+                min_index = i;
+            }
+        }
+        return min_index;
+    case CacheType::RANDOM:
+        for (uint i = 0; i < node_id.size(); i++) {
+            // If it's not blocked
+            if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0) {
+                candidate.push_back(i);
+            }
+        }
+
+        if (candidate.empty()) {
+            return index;
+        }
+
+        index = get_random_int(randomSeed, 0, candidate.size() - 1);
+        return candidate[index];
+    default:
+        logger->error("Unreachable cache state!");
+        exit(1);
+    }
+}
+
+int Cache::_get_cache_block_in_cache_index(Vertex* block) {
     int cache_index = -1;
     for (uint i = 0; i < node_id.size(); i++) {
         if (node_id[i] == block) {
@@ -19,7 +95,7 @@ int Cache::get_cache_block_in_cache_index(Vertex* block) {
     return cache_index;
 }
 
-int Cache::get_cargo_in_cache_index(Vertex* cargo) {
+int Cache::_get_cargo_in_cache_index(Vertex* cargo) {
     int cargo_index = -1;
     for (uint i = 0; i < node_cargo.size(); i++) {
         if (node_cargo[i] == cargo) {
@@ -30,7 +106,7 @@ int Cache::get_cargo_in_cache_index(Vertex* cargo) {
     return cargo_index;
 }
 
-bool Cache::is_cargo_in_coming_cache(Vertex* cargo) {
+bool Cache::_is_cargo_in_coming_cache(Vertex* cargo) {
     for (uint i = 0; i < node_coming_cargo.size(); i++) {
         if (node_coming_cargo[i] == cargo) {
             return true;
@@ -40,7 +116,7 @@ bool Cache::is_cargo_in_coming_cache(Vertex* cargo) {
 }
 
 Vertex* Cache::try_cache_cargo(Vertex* cargo) {
-    int cache_index = get_cargo_in_cache_index(cargo);
+    int cache_index = _get_cargo_in_cache_index(cargo);
 
     // If we can find cargo cached and is not reserved to be replaced , we go to cache and get it
     if (cache_index != -1 && bit_cache_insert_lock[cache_index] == 0) {
@@ -49,10 +125,9 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
         // It is impossible that a coming agent move cargo to this 
         // position while the cargo has already here
         bit_cache_get_lock[cache_index] += 1;
-        // We also update LRU here, since we do not want the cached cargo 
-        // been evicted while the agent moving to the cache
-        LRU_cnt += 1;
-        LRU[cache_index] = LRU_cnt;
+        // We also update cache evicted policy statistics
+        _update_cache_evited_policy_statistics(cache_index, false);
+
         return node_id[cache_index];
     }
 
@@ -64,56 +139,49 @@ Vertex* Cache::try_cache_cargo(Vertex* cargo) {
 Vertex* Cache::try_insert_cache(Vertex* cargo, Vertex* unloading_port) {
     // First, if cargo has already cached or is coming on the way, we directly go
     // to unloading port
-    if (get_cargo_in_cache_index(cargo) != -1 || is_cargo_in_coming_cache(cargo)) return unloading_port;
+    if (_get_cargo_in_cache_index(cargo) != -1 || _is_cargo_in_coming_cache(cargo)) return unloading_port;
 
     // Second try to find a empty position to insert cargo
     // TODO: optimization, can set a flag to skip this
-    for (uint i = 0; i < LRU.size(); i++) {
-        if (LRU[i] == 0) {
+    for (uint i = 0; i < is_empty.size(); i++) {
+        if (is_empty[i]) {
             logger->debug("Find an empty cache block with index {} {}", i, *node_id[i]);
             // We lock this position and update LRU info
             bit_cache_insert_lock[i] += 1;
-            // Updating coming cargo info
+            // Update coming cargo info
             node_coming_cargo[i] = cargo;
-            LRU_cnt += 1;
-            LRU[i] = LRU_cnt;
+            // Update cache evited policy statistics
+            _update_cache_evited_policy_statistics(i, true);
+            // Set the position to be used
+            is_empty[i] = true;
             return node_id[i];
         }
     }
 
     // Third, try to find a LRU position that is not locked
-    int min_value = -1;
-    int min_index = -1;
-
-    for (uint i = 0; i < LRU.size(); i++) {
-        // If it's not locked and (it's the first element or the smallest so far)
-        if (bit_cache_insert_lock[i] == 0 && bit_cache_get_lock[i] == 0 && (min_value == -1 || LRU[i] < min_value)) {
-            min_value = LRU[i];
-            min_index = i;
-        }
-    }
+    int index = _get_cache_evited_policy_index();
 
     // If we can find one, return the posititon
-    if (min_index != -1) {
+    if (index != -1) {
         // We lock this position and update LRU info
-        bit_cache_insert_lock[min_index] += 1;
+        bit_cache_insert_lock[index] += 1;
         // Updating coming cargo info
-        node_coming_cargo[min_index] = cargo;
-        LRU_cnt += 1;
-        LRU[min_index] = LRU_cnt;
-        return node_id[min_index];
+        node_coming_cargo[index] = cargo;
+        _update_cache_evited_policy_statistics(index, true);
+        return node_id[index];
     }
+
     // Else we can not insert into cache
     else return unloading_port;
 }
 
 bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
-    int cargo_index = get_cargo_in_cache_index(cargo);
-    int cache_index = get_cache_block_in_cache_index(cache_node);
+    int cargo_index = _get_cargo_in_cache_index(cargo);
+    int cache_index = _get_cache_block_in_cache_index(cache_node);
     // We should only update it while it is not in cache
     assert(cargo_index == -1);
     assert(cache_index != -1);
-    assert(is_cargo_in_coming_cache(cargo));
+    assert(_is_cargo_in_coming_cache(cargo));
 
     // Update cache
     logger->debug("Update cargo {} to cache block {}", *cargo, *cache_node);
@@ -124,8 +192,8 @@ bool Cache::update_cargo_into_cache(Vertex* cargo, Vertex* cache_node) {
 }
 
 bool Cache::update_cargo_from_cache(Vertex* cargo, Vertex* cache_node) {
-    int cargo_index = get_cargo_in_cache_index(cargo);
-    int cache_index = get_cache_block_in_cache_index(cache_node);
+    int cargo_index = _get_cargo_in_cache_index(cargo);
+    int cache_index = _get_cache_block_in_cache_index(cache_node);
     // We must make sure the cargo is still in the cache
     assert(cargo_index != -1);
     assert(cache_index != -1);

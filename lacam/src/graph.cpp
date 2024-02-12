@@ -19,7 +19,7 @@ Graph::Graph(
   uint goals_m,
   uint goals_k,
   uint ngoals,
-  bool is_cache,
+  CacheType cache_type,
   std::mt19937* _randomSeed) :
   V(Vertices()),
   width(0),
@@ -52,9 +52,9 @@ Graph::Graph(
 
   U = Vertices(width * height, nullptr);
 
-  if (is_cache) {
+  if (is_cache(cache_type)) {
     // Generate cache
-    cache = new Cache(_logger);
+    cache = new Cache(_logger, cache_type, randomSeed);
 
     // create vertices
     int y = 0;
@@ -79,9 +79,22 @@ Graph::Graph(
           cache->node_cargo.push_back(v);
           cache->node_id.push_back(v);
           cache->node_coming_cargo.push_back(v);
-          cache->LRU.push_back(0);
           cache->bit_cache_get_lock.push_back(0);
           cache->bit_cache_insert_lock.push_back(0);
+          cache->is_empty.push_back(false);
+          switch (cache_type) {
+          case CacheType::LRU:
+            cache->LRU.push_back(0);
+            break;
+          case CacheType::FIFO:
+            cache->FIFO.push_back(0);
+            break;
+          case CacheType::RANDOM:
+            break;
+          default:
+            logger->error("Unreachable cache type!");
+            exit(1);
+          }
         }
         // record cargo blocks
         else if (s == 'H') {
