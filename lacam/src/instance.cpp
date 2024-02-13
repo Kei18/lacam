@@ -37,7 +37,8 @@ Instance::Instance(
     Vertex* goal = graph.get_next_goal();
     goals.push_back(goal);
     cargo_goals.push_back(goal);
-    bit_status.push_back(0);  // at the begining, the cache is empty
+    bit_status.push_back(0);      // At the begining, the cache is empty, all agents should at status 0
+    cargo_cnts.push_back(0);
     if (goals.size() == nagents) break;
     ++j;
   }
@@ -58,12 +59,18 @@ uint Instance::update_on_reaching_goals_with_cache(
   uint& cache_access,
   uint& cache_hit)
 {
-  logger->debug("Remain goals: {}", remain_goals);
+  logger->debug("Remain goals:  {}", remain_goals);
   int step = vertex_list.size() - 1;
+  logger->debug("Step length:   {}", step);
   logger->debug("Solution ends: {}", vertex_list[step]);
   int reached_count = 0;
 
   // TODO: assign goals to closed free agents
+
+  // Update steps
+  for (size_t i = 0; i < vertex_list[step].size(); i++) {
+    cargo_cnts[i] += step;
+  }
 
   // First, we check vertex which status will released lock
   for (size_t j = 0; j < vertex_list[step].size(); ++j) {
@@ -78,7 +85,6 @@ uint Instance::update_on_reaching_goals_with_cache(
           j, *cargo_goals[j], *goals[j]);
         bit_status[j] = 4;
         graph.cache->update_cargo_from_cache(cargo_goals[j], goals[j]);
-        goals[j] = graph.unloading_ports[0];
       }
       // Status 2 finished. ==> Status 4
       // Agent has bring uncached cargo back to cache.
@@ -88,10 +94,12 @@ uint Instance::update_on_reaching_goals_with_cache(
           "Agent {} status 2 -> status 4, bring cargo {} to cache block "
           "{}, then return to unloading port",
           j, *cargo_goals[j], *goals[j]);
-        graph.cache->update_cargo_into_cache(cargo_goals[j], goals[j]);
         bit_status[j] = 4;
-        goals[j] = graph.unloading_ports[0];
+        graph.cache->update_cargo_into_cache(cargo_goals[j], goals[j]);
       }
+
+      // Update goals and steps
+      goals[j] = graph.unloading_ports[0];
     }
   }
 
@@ -119,7 +127,7 @@ uint Instance::update_on_reaching_goals_with_cache(
             j, *cargo_goals[j], *goal);
           bit_status[j] = 2;
         }
-        // update goal
+        // Update goals and steps
         goals[j] = goal;
       }
       // Status 0 yet not finished
@@ -135,6 +143,7 @@ uint Instance::update_on_reaching_goals_with_cache(
           cache_access++;
           cache_hit++;
           bit_status[j] = 1;
+          // Update goals and steps
           goals[j] = goal;
         }
         // Otherwise, we do nothing for cache miss situation
@@ -150,6 +159,9 @@ uint Instance::update_on_reaching_goals_with_cache(
           // not update the statistics.
           remain_goals--;
           reached_count++;
+          // Record finished cargo steps
+          cargo_steps.push_back(cargo_cnts[j]);
+          cargo_cnts[j] = 0;
         }
 
         logger->debug("Agent {} has bring cargo {} to unloading port", j, *cargo_goals[j]);
@@ -208,6 +220,9 @@ uint Instance::update_on_reaching_goals_with_cache(
           // not update the statistics.
           remain_goals--;
           reached_count++;
+          // Record finished cargo steps
+          cargo_steps.push_back(cargo_cnts[j]);
+          cargo_cnts[j] = 0;
         }
 
         logger->debug("Agent {} has bring cargo {} to unloading port", j, *cargo_goals[j]);
@@ -253,12 +268,15 @@ uint Instance::update_on_reaching_goals_without_cache(
   std::vector<Config>& vertex_list,
   int remain_goals)
 {
-  logger->debug("Remain goals: {}", remain_goals);
+  logger->debug("Remain goals:  {}", remain_goals);
   int step = vertex_list.size() - 1;
+  logger->debug("Step length:   {}", step);
   logger->debug("Solution ends: {}", vertex_list[step]);
   int reached_count = 0;
 
   for (size_t j = 0; j < vertex_list[step].size(); ++j) {
+    // Update steps
+    cargo_cnts[j] += step;
     if (vertex_list[step][j] == goals[j]) {
       if (goals[j] == graph.unloading_ports[0]) {
         if (remain_goals > 0) {
@@ -267,6 +285,9 @@ uint Instance::update_on_reaching_goals_without_cache(
           // not update the statistics.
           remain_goals--;
           reached_count++;
+          // Recorded finished cargo steps
+          cargo_steps.push_back(cargo_cnts[j]);
+          cargo_cnts[j] = 0;
         }
         goals[j] = graph.get_next_goal();
       }
@@ -279,4 +300,25 @@ uint Instance::update_on_reaching_goals_without_cache(
   starts = vertex_list[step];
   logger->debug("Ends: {}", starts);
   return reached_count;
+}
+
+std::vector<uint> Instance::compute_percentiles() const {
+  logger->debug("cargo step size: {}", cargo_steps.size());
+  std::vector<uint> sorted_steps(cargo_steps);
+
+  // Calculate indices for the percentiles
+  auto idx = [&](double p) -> size_t {
+    return static_cast<size_t>(std::floor((p * sorted_steps.size()) / 100.0));
+    };
+
+  std::vector<uint> percentiles;
+  std::vector<double> required_percentiles = { 0, 25, 50, 75, 90, 95, 99, 100 };
+  for (double p : required_percentiles) {
+    size_t i = idx(p);
+    // Partially sort to find the ith smallest element (percentile)
+    std::nth_element(sorted_steps.begin(), sorted_steps.begin() + i, sorted_steps.end());
+    percentiles.push_back(sorted_steps[i]);
+  }
+
+  return percentiles;
 }

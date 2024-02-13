@@ -8,10 +8,13 @@
 #include "utils.hpp"
 
 struct Instance {
-  Graph graph;          // graph
-  Config starts;        // initial configuration
-  Config goals;         // goal configuration, can be in warehouse block/cache block
-  Config cargo_goals;   // cargo goal configuration
+  Graph graph;                    // graph
+  Config starts;                  // initial configuration
+  Config goals;                   // goal configuration, can be in warehouse block/cache block
+  Config cargo_goals;             // cargo goal configuration
+
+  std::vector<uint> cargo_cnts;   // each cargo cnts, help variable for cargo_steps
+  std::vector<uint> cargo_steps;  // each cargo steps 
 
   // Status control:
   // 0 -> cache miss, going for warehouse get cargo
@@ -21,8 +24,8 @@ struct Instance {
   // 4 -> cache get cargo, going back to unloading port
   std::vector<uint> bit_status;
 
-  const uint nagents;   // number of agents
-  const uint ngoals;    // number of goals
+  const uint nagents;             // number of agents
+  const uint ngoals;              // number of goals
 
   std::shared_ptr<spdlog::logger> logger;
 
@@ -56,4 +59,7 @@ struct Instance {
     std::vector<Config>& vertex_list,
     int remain_goals
   );
+
+  // Compute percentiles steps
+  std::vector<uint> compute_percentiles() const;
 };

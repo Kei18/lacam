@@ -10,7 +10,7 @@ int main(int argc, char* argv[])
   // arguments parser
   argparse::ArgumentParser program("lacam", "0.1.0");
   program.add_argument("-m", "--map").help("map file").required();                                                                              // map file
-  program.add_argument("-ca", "--cache").help("cache type: NONE, LRU, FIFO, RANDOM").default_value(std::string("NONE"));                                                 // cache enable                    
+  program.add_argument("-ca", "--cache").help("cache type: NONE, LRU, FIFO, RANDOM").default_value(std::string("NONE"));                        // cache type                    
   program.add_argument("-ng", "--ngoals").help("number of goals").required();                                                                   // number of goals: agent first go to get goal, and then return to unloading port
   program.add_argument("-gk", "--goals-k").help("maximum k different number of goals in m segment of all goals").required();
   program.add_argument("-gm", "--goals-m").help("maximum k different number of goals in m segment of all goals").required();
@@ -180,15 +180,18 @@ int main(int argc, char* argv[])
     }
     console->debug("Reached Goals: {}", nagents_with_new_goals);
   }
+  // Get percentiles
+  std::vector<uint> step_percentiles = ins.compute_percentiles();
 
   double total_cache_rate = is_cache(cache_type) ? static_cast<double>(cache_hit) / cache_access * 100.0 : .0;
   if (is_cache(cache_type)) {
-    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Total Steps Used: {:5}", ngoals, total_cache_rate, makespan);
+    console->info("Total Goals Reached: {:5}   |   Total Cache Hit Rate: {:2.2f}%    |   Makespan: {:5}   |   P0 Steps: {:5}    |   P50 Steps: {:5}   |   P99 Steps: {:5}", ngoals, total_cache_rate, makespan, step_percentiles[0], step_percentiles[2], step_percentiles[6]);
   }
   else {
-    console->info("Total Goals Reached: {:5}   |   Total Steps Used: {:5}", ngoals, makespan);
+    console->info("Total Goals Reached: {:5}   |   Makespan: {:5}   |   P0 Steps: {:5}    |   P50 Steps: {:5}   |   P99 Steps: {:5}", ngoals, makespan, step_percentiles[0], step_percentiles[2], step_percentiles[6]);
   }
   log.make_life_long_log(ins, seed);
+
 
   std::ofstream file(output_csv_name, std::ios::app);
 
@@ -207,7 +210,11 @@ int main(int argc, char* argv[])
     << goals_m << ","
     << goals_k << ","
     << total_cache_rate << ","
-    << makespan << std::endl;
+    << makespan << ","
+    << step_percentiles[0] << ","
+    << step_percentiles[2] << ","
+    << step_percentiles[6] << ","
+    << std::endl;
 
   file.close();
 
