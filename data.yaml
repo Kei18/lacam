@@ -62,6 +62,10 @@ demoDescription: |
 
 slides: https://speakerdeck.com/player/7eff96d075984b7dbb75d249d9bc67fa
 
+errata:
+  - |
+      Figure 1: The colors of the two agents in the last column at "low-level" and configuration generator" need to be swapped.
+
 citation: |-
   @inproceedings{okumura2023lacam,
     title={LaCAM: Search-Based Algorithm for Quick Multi-Agent Pathfinding},

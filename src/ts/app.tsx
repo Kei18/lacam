@@ -211,6 +211,20 @@ const App: React.SFC<{}> = () => {
             ""
           )}
 
+      {data.errata ? (
+          <div className="mx-auto mt-5">
+              <p className="h5">Errata</p>
+              <ul>
+              {data.errata.map((item, i) => (
+                  <li key={i}>{item}</li>
+              ))}
+          </ul>
+              </div>
+      ) : (
+          ""
+      )}
+
+
           {data.citation ? (
             <div className="mx-auto mt-5">
               <p className="h5">Citation</p>
