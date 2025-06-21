@@ -17,8 +17,6 @@ jobs:
         with:
           node-version: "16.x"
 
-      - uses: c-hive/gha-yarn-cache@v2
-
       - name: parcel build
         run: |
           yarn
